@@ -1,0 +1,26 @@
+对象存储-oss
+bucket:`poping-oss-buckeet`
+AccessKey ID：`LTAI5tDRPTsnKpv8KVFaq1ry`
+
+
+数据库-mysql
+host: `localhost`
+port: `3306`
+user: `root`
+password: `123456`
+
+redis
+host: `47.99.118.208`
+port: `6379`
+password: `redis123`
+
+
+邮箱
+
+POP3服务器: pop.163.com
+SMTP服务器: smtp.163.com
+IMAP服务器: imap.163.com
+
+账号 ： 15724433688@163.com
+密码：wzw15724433688
+授权码：NQhk9wD7JJxbsGDm
