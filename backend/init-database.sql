@@ -87,6 +87,50 @@ CREATE TABLE `user_subscriptions` (
   CONSTRAINT `fk_user_subscriptions_plan_id` FOREIGN KEY (`plan_id`) REFERENCES `subscription_plans` (`plan_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户订阅表';
 
+-- 6. 数据集表 (datasets)
+CREATE TABLE `datasets` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '物理主键',
+  `dataset_id` VARCHAR(36) NOT NULL COMMENT '数据集业务主键',
+  `owner_id` VARCHAR(36) NOT NULL COMMENT '所属用户业务主键',
+  `title` VARCHAR(255) NOT NULL COMMENT '数据集标题',
+  `description` TEXT DEFAULT NULL COMMENT '数据集描述',
+  `dataset_type` VARCHAR(50) NOT NULL COMMENT '数据集类型',
+  `tags` JSON DEFAULT NULL COMMENT '标签',
+  `status` VARCHAR(32) NOT NULL DEFAULT 'PROCESSING' COMMENT '数据集状态',
+  `parse_progress` INT NOT NULL DEFAULT 0 COMMENT '解析进度百分比',
+  `record_count` INT NOT NULL DEFAULT 0 COMMENT '记录数量',
+  `file_count` INT NOT NULL DEFAULT 0 COMMENT '文件数量',
+  `total_size` BIGINT NOT NULL DEFAULT 0 COMMENT '文件总大小',
+  `error_message` VARCHAR(512) DEFAULT NULL COMMENT '错误信息',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_datasets_dataset_id` (`dataset_id`),
+  KEY `idx_datasets_owner_id` (`owner_id`),
+  CONSTRAINT `fk_datasets_owner` FOREIGN KEY (`owner_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='数据集表';
+
+-- 7. 数据集文件表 (dataset_files)
+CREATE TABLE `dataset_files` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '物理主键',
+  `file_id` VARCHAR(36) NOT NULL COMMENT '文件业务主键',
+  `dataset_id` VARCHAR(36) NOT NULL COMMENT '关联数据集业务主键',
+  `original_name` VARCHAR(255) NOT NULL COMMENT '原始文件名',
+  `stored_name` VARCHAR(255) NOT NULL COMMENT '存储文件名',
+  `file_type` VARCHAR(100) DEFAULT NULL COMMENT '文件类型',
+  `file_size` BIGINT NOT NULL COMMENT '文件大小',
+  `storage_path` VARCHAR(512) NOT NULL COMMENT '存储路径',
+  `download_url` VARCHAR(512) DEFAULT NULL COMMENT '下载地址',
+  `status` VARCHAR(32) NOT NULL DEFAULT 'UPLOADED' COMMENT '处理状态',
+  `parse_result` TEXT DEFAULT NULL COMMENT '解析结果',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_dataset_files_file_id` (`file_id`),
+  KEY `idx_dataset_files_dataset_id` (`dataset_id`),
+  CONSTRAINT `fk_dataset_files_dataset` FOREIGN KEY (`dataset_id`) REFERENCES `datasets` (`dataset_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='数据集文件表';
+
 -- 插入基础角色数据
 INSERT INTO `user_roles` (`role_id`, `role_name`, `description`) VALUES
 ('role-unlogged', 'unlogged', '未登录用户'),
