@@ -125,14 +125,38 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+
+// 定义工具类型接口
+interface McpTool {
+  id: string
+  name: string
+  provider: string
+  description: string
+  tags: string[]
+  usage: number
+  rating: number
+  version: string
+  status: string
+  features: Array<{
+    title: string
+    description: string
+  }>
+  parameters: Array<{
+    name: string
+    type: string
+    required: boolean
+    description: string
+  }>
+  example: string
+}
 
 const router = useRouter()
 const route = useRoute()
 
-const tool = ref(null)
+const tool = ref<McpTool | null>(null)
 const isLoading = ref(false)
 
 const goBack = () => {
@@ -158,7 +182,7 @@ const installTool = async () => {
   }
 }
 
-const formatNumber = (num) => {
+const formatNumber = (num: number): string => {
   if (num >= 1000000) {
     return (num / 1000000).toFixed(1) + 'M'
   } else if (num >= 1000) {
@@ -170,13 +194,13 @@ const formatNumber = (num) => {
 const loadToolDetail = async () => {
   isLoading.value = true
   try {
-    const toolId = route.params.id
+    const toolId = route.params.id as string
     
     // 模拟API调用获取工具详情
     await new Promise(resolve => setTimeout(resolve, 1000))
     
     // 模拟工具详情数据
-    const toolsData = {
+    const toolsData: Record<string, McpTool> = {
       '1': {
         id: '1',
         name: 'Fetch网页内容提取器',

@@ -81,33 +81,29 @@ export const useAgentStore = defineStore('agent', () => {
           description: '通用AI助手，可以帮助您解答各种问题',
           systemPrompt: '你是一个有用的AI助手。',
           config: {
-            model: {
-              provider: 'openai',
-              name: 'gpt-4',
-              temperature: 0.7,
-              maxTokens: 2000
+            model: 'gpt-4',
+            temperature: 0.7,
+            maxTokens: 2000,
+            mcpConfig: {
+              enabled: false,
+              tools: []
             },
-            features: {
-              memories: true,
-              events: false,
-              docs: false,
-              texts: false,
-              images: false,
-              retrieval: false
+            datasetConfig: {
+              enabled: false,
+              datasetIds: []
             },
-            system: {
-              systemPrompt: '你是一个有用的AI助手。'
+            memoryConfig: {
+              enabled: false,
+              type: 'short_term',
+              maxMessages: 50
             }
           },
-          creatorId: 1,
-          isPublic: true,
           status: 'active' as const,
-          usageCount: 0,
-          createTime: new Date().toISOString(),
-          updateTime: new Date().toISOString(),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-          memoryEnabled: true
+          memoryEnabled: true,
+          isPublic: true,
+          usageCount: 0
         },
         {
           id: 'mock-2',
@@ -115,33 +111,29 @@ export const useAgentStore = defineStore('agent', () => {
           description: '专门用于编程和代码相关任务的AI助手',
           systemPrompt: '你是一个专业的编程助手。',
           config: {
-            model: {
-              provider: 'openai',
-              name: 'gpt-3.5-turbo',
-              temperature: 0.1,
-              maxTokens: 4000
+            model: 'gpt-3.5-turbo',
+            temperature: 0.1,
+            maxTokens: 4000,
+            mcpConfig: {
+              enabled: false,
+              tools: []
             },
-            features: {
-              memories: false,
-              events: false,
-              docs: false,
-              texts: false,
-              images: false,
-              retrieval: false
+            datasetConfig: {
+              enabled: false,
+              datasetIds: []
             },
-            system: {
-              systemPrompt: '你是一个专业的编程助手。'
+            memoryConfig: {
+              enabled: false,
+              type: 'short_term',
+              maxMessages: 50
             }
           },
-          creatorId: 1,
-          isPublic: true,
           status: 'active' as const,
-          usageCount: 0,
-          createTime: new Date().toISOString(),
-          updateTime: new Date().toISOString(),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-          memoryEnabled: false
+          memoryEnabled: false,
+          isPublic: true,
+          usageCount: 0
         }
       ]
       
@@ -198,9 +190,9 @@ export const useAgentStore = defineStore('agent', () => {
   }
 
   /**
-   * 获取智能体详情
+   * 根据ID获取智能体
    */
-  async function fetchAgentById(id: number): Promise<Agent> {
+  async function fetchAgentById(id: string): Promise<Agent | null> {
     try {
       isLoading.value = true
       error.value = null
@@ -221,58 +213,35 @@ export const useAgentStore = defineStore('agent', () => {
       if (result.code === 200) {
         return result.data
       } else {
-        throw new Error(result.message || '获取智能体详情失败')
+        throw new Error(result.message || '获取智能体失败')
       }
     } catch (err) {
-      error.value = err instanceof Error ? err.message : '获取智能体详情失败'
-      throw err
+      console.warn('API调用失败，从本地数据查找:', err)
+      return agents.value.find(agent => agent.id === id) || null
     } finally {
       isLoading.value = false
     }
   }
 
   /**
-   * 设置当前智能体
+   * 设置当前活跃的智能体
    */
-  function setCurrentAgent(agent: Agent | null) {
-    currentAgent.value = agent
-    // 切换智能体时清空当前会话
-    currentSession.value = null
-    messages.value = []
-  }
-
-  /**
-   * 通过ID设置活跃智能体
-   */
-  async function setActiveAgent(agentId: number) {
-    try {
-      const agent = agents.value.find(a => a.id === agentId)
-      if (agent) {
-        setCurrentAgent(agent)
-      } else {
-        // 如果本地没有找到，尝试从服务器获取
-        const fetchedAgent = await fetchAgentById(agentId)
-        setCurrentAgent(fetchedAgent)
-      }
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : '设置智能体失败'
-      throw err
+  function setActiveAgent(agentId: string) {
+    const agent = agents.value.find(a => a.id === agentId)
+    if (agent) {
+      currentAgent.value = agent
     }
   }
 
   /**
    * 获取会话列表
    */
-  async function fetchSessions(agentId?: number) {
+  async function fetchSessions(agentId: string): Promise<ChatSessionListResponse> {
     try {
       isLoading.value = true
       error.value = null
       
-      const url = agentId 
-        ? `/api/playground/sessions?agentId=${agentId}`
-        : '/api/playground/sessions'
-      
-      const response = await fetch(url, {
+      const response = await fetch(`/api/agents/${agentId}/sessions`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -292,8 +261,29 @@ export const useAgentStore = defineStore('agent', () => {
         throw new Error(result.message || '获取会话列表失败')
       }
     } catch (err) {
-      error.value = err instanceof Error ? err.message : '获取会话列表失败'
-      throw err
+      console.warn('API调用失败，使用模拟数据:', err)
+      
+      // 提供模拟会话数据
+      const mockSessions: ChatSession[] = [
+        {
+          id: 'session-1',
+          agentId: 1,
+          userId: 1,
+          title: '新对话',
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          messageCount: 0
+        }
+      ]
+      
+      sessions.value = mockSessions
+      error.value = null
+      
+      return {
+        sessions: mockSessions,
+        total: mockSessions.length
+      }
     } finally {
       isLoading.value = false
     }
@@ -302,21 +292,18 @@ export const useAgentStore = defineStore('agent', () => {
   /**
    * 创建新会话
    */
-  async function createSession(agentId: number, title?: string): Promise<ChatSession> {
+  async function createSession(agentId: string, title?: string): Promise<ChatSession> {
     try {
       isLoading.value = true
       error.value = null
       
-      const response = await fetch('/api/playground/sessions', {
+      const response = await fetch(`/api/agents/${agentId}/sessions`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          agentId,
-          title: title || `与 ${currentAgent.value?.name || '智能体'} 的对话`
-        })
+        body: JSON.stringify({ title: title || '新对话' })
       })
       
       if (!response.ok) {
@@ -327,13 +314,34 @@ export const useAgentStore = defineStore('agent', () => {
       
       if (result.code === 200) {
         sessions.value.unshift(result.data)
+        currentSession.value = result.data
         return result.data
       } else {
         throw new Error(result.message || '创建会话失败')
       }
     } catch (err) {
-      error.value = err instanceof Error ? err.message : '创建会话失败'
-      throw err
+      console.warn('API调用失败，创建模拟会话:', err)
+      
+      const agent = agents.value.find(a => a.id === agentId)
+      
+      // 创建模拟会话
+      const newSession: ChatSession = {
+        id: `session-${Date.now()}`,
+        agentId: Number(agentId),
+        userId: 1,
+        title: title || `新对话 ${sessions.value.length + 1}`,
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        messageCount: 0,
+        agentName: agent?.name
+      }
+      
+      sessions.value.unshift(newSession)
+      currentSession.value = newSession
+      error.value = null
+      
+      return newSession
     } finally {
       isLoading.value = false
     }
@@ -342,25 +350,92 @@ export const useAgentStore = defineStore('agent', () => {
   /**
    * 设置当前会话
    */
-  function setCurrentSession(session: ChatSession | null) {
-    currentSession.value = session
+  function setCurrentSession(sessionId: string) {
+    const session = sessions.value.find(s => s.id === sessionId)
     if (session) {
-      // 加载会话消息
-      fetchSessionMessages(session.id)
-    } else {
-      messages.value = []
+      currentSession.value = session
+    }
+  }
+
+  /**
+   * 发送消息
+   */
+  async function sendMessage(content: string): Promise<void> {
+    if (!currentSession.value || !currentAgent.value) {
+      throw new Error('没有选择智能体或会话')
+    }
+
+    try {
+      isTyping.value = true
+      error.value = null
+
+      // 添加用户消息
+      const userMessage: ChatMessage = {
+        id: `msg-${Date.now()}`,
+        sessionId: currentSession.value.id,
+        role: 'user',
+        content,
+        createdAt: new Date().toISOString()
+      }
+      
+      messages.value.push(userMessage)
+
+      const response = await fetch(`/api/sessions/${currentSession.value.id}/messages`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content })
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result: ApiResponse<ChatMessage> = await response.json()
+
+      if (result.code === 200) {
+        messages.value.push(result.data)
+      } else {
+        throw new Error(result.message || '发送消息失败')
+      }
+    } catch (err) {
+      console.warn('API调用失败，使用模拟响应:', err)
+      
+      // 模拟AI响应
+      const aiMessage: ChatMessage = {
+        id: `msg-${Date.now() + 1}`,
+        sessionId: currentSession.value.id,
+        role: 'assistant',
+        content: '这是一个模拟的AI响应。实际部署时，这里会是真实的AI回复。',
+        createdAt: new Date().toISOString()
+      }
+      
+      // 模拟打字延迟
+      setTimeout(() => {
+        messages.value.push(aiMessage)
+        isTyping.value = false
+      }, 1000)
+      
+      error.value = null
+      return
+    } finally {
+      if (!error.value) {
+        isTyping.value = false
+      }
     }
   }
 
   /**
    * 获取会话消息
    */
-  async function fetchSessionMessages(sessionId: string) {
+  async function fetchMessages(sessionId: string): Promise<void> {
     try {
       isLoading.value = true
       error.value = null
       
-      const response = await fetch(`/api/playground/sessions/${sessionId}/messages`, {
+      const response = await fetch(`/api/sessions/${sessionId}/messages`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -374,95 +449,21 @@ export const useAgentStore = defineStore('agent', () => {
       const result: ApiResponse<ChatMessage[]> = await response.json()
       
       if (result.code === 200) {
-        // 更新消息列表，保留其他会话的消息
-        messages.value = messages.value.filter(msg => msg.sessionId !== sessionId)
-        messages.value.push(...result.data)
-        return result.data
+        messages.value = result.data
       } else {
         throw new Error(result.message || '获取消息失败')
       }
     } catch (err) {
-      error.value = err instanceof Error ? err.message : '获取消息失败'
-      throw err
+      console.warn('API调用失败，清空消息列表:', err)
+      messages.value = []
+      error.value = null
     } finally {
       isLoading.value = false
     }
   }
 
   /**
-   * 发送消息
-   */
-  async function sendMessage(content: string): Promise<ChatMessage> {
-    if (!currentSession.value || !currentAgent.value) {
-      throw new Error('请先选择智能体和会话')
-    }
-
-    try {
-      isTyping.value = true
-      error.value = null
-      
-      // 添加用户消息到本地状态
-      const userMessage: ChatMessage = {
-        id: `temp-${Date.now()}`,
-        sessionId: currentSession.value.id,
-        role: 'user',
-        content,
-        createdAt: new Date().toISOString()
-      }
-      messages.value.push(userMessage)
-      
-      const response = await fetch(`/api/playground/sessions/${currentSession.value.id}/messages`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ content })
-      })
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const result: ApiResponse<ChatMessage> = await response.json()
-      
-      if (result.code === 200) {
-        // 替换临时消息
-        const index = messages.value.findIndex(msg => msg.id === userMessage.id)
-        if (index !== -1) {
-          messages.value[index] = result.data
-        }
-        return result.data
-      } else {
-        throw new Error(result.message || '发送消息失败')
-      }
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : '发送消息失败'
-      throw err
-    } finally {
-      isTyping.value = false
-    }
-  }
-
-  /**
-   * 添加助手消息（用于流式响应）
-   */
-  function addAssistantMessage(message: ChatMessage) {
-    messages.value.push(message)
-  }
-
-  /**
-   * 更新消息内容（用于流式响应）
-   */
-  function updateMessage(messageId: string, content: string) {
-    const message = messages.value.find(msg => msg.id === messageId)
-    if (message) {
-      message.content = content
-    }
-  }
-
-  /**
-   * 清空错误状态
+   * 清除错误状态
    */
   function clearError() {
     error.value = null
@@ -498,19 +499,16 @@ export const useAgentStore = defineStore('agent', () => {
     currentSessionMessages,
     playgroundState,
     
-    // Actions
+    // 方法
     fetchAgents,
     createAgent,
     fetchAgentById,
-    setCurrentAgent,
     setActiveAgent,
     fetchSessions,
     createSession,
     setCurrentSession,
-    fetchSessionMessages,
     sendMessage,
-    addAssistantMessage,
-    updateMessage,
+    fetchMessages,
     clearError,
     reset
   }

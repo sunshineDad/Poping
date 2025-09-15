@@ -286,15 +286,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue'
-import type { AgentCreateRequest } from '@/types/agent'
+import { ref, computed, reactive, onMounted } from 'vue'
+import type { Agent, AgentCreateRequest } from '@/types/agent'
 
 // Props
 interface Props {
+  initialData?: Agent | null
   isSubmitting?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  initialData: null,
   isSubmitting: false
 })
 
@@ -363,21 +365,21 @@ const availableTools = ref([
 // 可用数据集列表
 const availableDatasets = ref([
   {
-    id: 1,
+    id: '1',
     name: '通用知识库',
     description: '包含各领域的通用知识和常见问题解答',
     size: 10000,
     type: 'QA'
   },
   {
-    id: 2,
+    id: '2',
     name: '技术文档',
     description: '编程、开发相关的技术文档和教程',
     size: 5000,
     type: 'Document'
   },
   {
-    id: 3,
+    id: '3',
     name: '产品手册',
     description: '产品使用说明和操作指南',
     size: 2000,
@@ -419,7 +421,7 @@ function handleSubmit() {
   emit('submit', { ...formData })
 }
 
-function toggleDataset(datasetId: number) {
+function toggleDataset(datasetId: string) {
   const index = formData.config.datasetConfig.datasetIds.indexOf(datasetId)
   if (index > -1) {
     formData.config.datasetConfig.datasetIds.splice(index, 1)

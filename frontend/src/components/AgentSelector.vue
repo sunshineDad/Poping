@@ -195,13 +195,7 @@ const editingAgent = ref<Agent | null>(null)
 
 // 计算属性
 const filteredAgents = computed(() => {
-  if (!props.agents || !Array.isArray(props.agents)) {
-    return []
-  }
-  
-  if (!searchQuery.value.trim()) {
-    return props.agents
-  }
+  if (!searchQuery.value) return props.agents
   
   const query = searchQuery.value.toLowerCase()
   return props.agents.filter(agent => 

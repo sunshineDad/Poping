@@ -6,9 +6,9 @@
           <component :is="iconComponent" class="icon" />
         </div>
         <div class="trend-indicator" :class="`trend-${trend}`">
-          <TrendUpIcon v-if="trend === 'up'" class="trend-icon" />
-          <TrendDownIcon v-if="trend === 'down'" class="trend-icon" />
-          <MinusIcon v-if="trend === 'stable'" class="trend-icon" />
+          <TrendingUpIcon v-if="trend === 'up'" class="trend-icon" />
+          <TrendingDownIcon v-if="trend === 'down'" class="trend-icon" />
+          <PlusIcon v-if="trend === 'stable'" class="trend-icon" />
           <span class="change-text">{{ formatChange(change) }}</span>
         </div>
       </div>
@@ -26,11 +26,11 @@ import { computed } from 'vue'
 import {
   ApiIcon,
   KeyIcon,
-  ChartIcon,
+  ActivityIcon,
   ServerIcon,
-  TrendUpIcon,
-  TrendDownIcon,
-  MinusIcon
+  TrendingUpIcon,
+  TrendingDownIcon,
+  PlusIcon
 } from '@/components/icons'
 
 interface Props {
@@ -50,7 +50,7 @@ const props = withDefaults(defineProps<Props>(), {
 const iconMap = {
   api: ApiIcon,
   key: KeyIcon,
-  chart: ChartIcon,
+  chart: ActivityIcon,
   server: ServerIcon
 }
 

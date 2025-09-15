@@ -144,20 +144,44 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
+// 定义工具类型接口
+interface McpTool {
+  id: string
+  name: string
+  provider: string
+  description: string
+  category: string
+  tags: string[]
+  usage: number
+  rating: number
+  version: string
+  status: string
+  statusText: string
+}
+
+// 定义分类类型接口
+interface Category {
+  id: string
+  name: string
+  count: number
+  expanded?: boolean
+  children?: Category[]
+}
+
 // 响应式数据
 const searchQuery = ref('')
 const selectedCategory = ref('all')
-const mcpTools = ref([])
+const mcpTools = ref<McpTool[]>([])
 const isLoading = ref(false)
 
 // 分类数据（树状结构）
-const categories = ref([
+const categories = ref<Category[]>([
   {
     id: 'all',
     name: '全部工具',
@@ -234,7 +258,7 @@ const filteredMcpTools = computed(() => {
 })
 
 // 方法
-const toggleCategory = (category) => {
+const toggleCategory = (category: Category) => {
   if (category.children && category.children.length > 0) {
     category.expanded = !category.expanded
   } else {
@@ -242,11 +266,11 @@ const toggleCategory = (category) => {
   }
 }
 
-const selectCategory = (categoryId) => {
+const selectCategory = (categoryId: string) => {
   selectedCategory.value = categoryId
 }
 
-const installMcpTool = async (tool) => {
+const installMcpTool = async (tool: McpTool) => {
   if (!tool || !tool.status || tool.status === 'installed' || tool.status === 'installing') return
 
   try {
@@ -268,11 +292,11 @@ const installMcpTool = async (tool) => {
   }
 }
 
-const viewDetails = (tool) => {
+const viewDetails = (tool: McpTool) => {
   router.push(`/dashboard/marketplace/tool/${tool.id}`)
 }
 
-const formatNumber = (num) => {
+const formatNumber = (num: number): string => {
   if (num >= 1000000) {
     return (num / 1000000).toFixed(1) + 'M'
   } else if (num >= 1000) {

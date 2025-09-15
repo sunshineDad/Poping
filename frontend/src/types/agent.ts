@@ -1,67 +1,44 @@
 // 智能体相关类型定义
 
 export interface Agent {
-  id: string | number
+  id: string
   name: string
   description?: string
-  avatar?: string
   systemPrompt: string
-  config?: AgentConfig  // 修改为对象类型
-  category?: string
-  tags?: string
-  creatorId: number
-  isPublic: boolean
-  status: 'active' | 'inactive'
-  usageCount: number
-  createTime: string
-  updateTime: string
-  createdAt: string     // 添加缺失字段
-  updatedAt: string     // 添加缺失字段
-  memoryEnabled?: boolean // 添加缺失字段
+  config: AgentConfig
+  status: 'active' | 'inactive' | 'error'
+  createdAt: string
+  updatedAt: string
+  memoryEnabled: boolean
+  isPublic?: boolean
+  usageCount?: number
 }
 
 export interface AgentCreateRequest {
   name: string
   description?: string
-  avatar?: string
   systemPrompt: string
-  config?: AgentConfig  // 修改为对象类型
-  isPublic?: boolean
+  config: AgentConfig
 }
 
 export interface AgentConfig {
-  model?: {
-    provider: string
-    name: string
-    temperature?: number
-    maxTokens?: number
-  }
-  mcpConfig?: {
+  model: string
+  temperature: number
+  maxTokens: number
+  mcpConfig: {
     enabled: boolean
     endpoint?: string
     apiKey?: string
-    tools?: string[]
+    tools: string[]
   }
-  datasetConfig?: {
+  datasetConfig: {
     enabled: boolean
     datasetIds: string[]
   }
-  memoryConfig?: {
+  memoryConfig: {
     enabled: boolean
-    type?: 'short' | 'long'
-    maxMessages?: number
-  }
-  features: {
-    memories: boolean
-    events: boolean
-    docs: boolean
-    texts: boolean
-    images: boolean
-    retrieval: boolean
-  }
-  customMcpServers?: Record<string, any>
-  system: {
-    systemPrompt: string
+    type: 'short_term' | 'long_term' | 'hybrid'
+    maxMessages: number
   }
 }
 
@@ -95,6 +72,10 @@ export interface ToolCall {
   name: string
   arguments: Record<string, any>
   result?: any
+  function: {
+    name: string
+    arguments?: Record<string, any>
+  }
 }
 
 // API响应类型
@@ -109,6 +90,15 @@ export interface AgentListResponse {
   total: number
   page: number
   size: number
+}
+
+// 添加缺失的分页类型
+export interface AgentListPagination {
+  total: number
+  page: number
+  currentPage: number
+  size: number
+  totalPages: number
 }
 
 export interface ChatSessionListResponse {
@@ -200,4 +190,9 @@ export interface AgentFormErrors {
   systemPrompt?: string
   model?: string
   dataset?: string
+}
+
+export interface DatasetConfig {
+  enabled: boolean
+  datasetIds: string[]
 }

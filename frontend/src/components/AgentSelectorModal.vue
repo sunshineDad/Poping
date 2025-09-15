@@ -163,7 +163,7 @@ const filteredAgents = computed(() => {
   const query = props.searchQuery.toLowerCase()
   return props.agents.filter(agent => 
     agent.name.toLowerCase().includes(query) ||
-    agent.description.toLowerCase().includes(query)
+    (agent.description && agent.description.toLowerCase().includes(query))
   )
 })
 

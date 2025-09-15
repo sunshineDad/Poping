@@ -102,7 +102,7 @@ async function loadInitialData() {
     
     if (agentStore.agents.length > 0 && !agentStore.currentAgent) {
       // 设置第一个智能体为当前智能体
-      await agentStore.setActiveAgent(Number(agentStore.agents[0].id))
+      await agentStore.setActiveAgent(agentStore.agents[0].id)
     }
     
     await loadSessions()
@@ -119,7 +119,7 @@ async function loadSessions() {
   try {
     isLoadingSessions.value = true
     sessionError.value = null
-    await agentStore.fetchSessions(Number(selectedAgent.value.id))
+    await agentStore.fetchSessions(selectedAgent.value.id)
   } catch (error) {
     console.error('加载会话失败:', error)
     sessionError.value = '加载会话失败'
@@ -133,8 +133,8 @@ async function loadMessages() {
   
   try {
     isLoadingMessages.value = true
-    // 使用现有的 fetchSessionMessages 方法
-    await agentStore.fetchSessionMessages(currentSession.value.id)
+    // 使用现有的 fetchMessages 方法
+    await agentStore.fetchMessages(currentSession.value.id)
   } catch (error) {
     console.error('加载消息失败:', error)
     messageError.value = '加载消息失败'
@@ -146,7 +146,7 @@ async function loadMessages() {
 // 智能体相关处理
 async function handleSelectAgent(agent: Agent) {
   try {
-    await agentStore.setActiveAgent(Number(agent.id))
+    await agentStore.setActiveAgent(agent.id)
     showAgentSelector.value = false
     await loadSessions()
   } catch (error) {
@@ -157,7 +157,7 @@ async function handleSelectAgent(agent: Agent) {
 async function handleCreateAgent(agentData: AgentCreateRequest) {
   try {
     const newAgent = await agentStore.createAgent(agentData)
-    await agentStore.setActiveAgent(Number(newAgent.id))
+    await agentStore.setActiveAgent(newAgent.id)
     showAgentSelector.value = false
     await loadSessions()
   } catch (error) {
@@ -174,7 +174,7 @@ function handleSearchAgents(query: string) {
 // 会话相关处理
 async function handleSelectSession(session: ChatSession) {
   try {
-    agentStore.setCurrentSession(session)
+    agentStore.setCurrentSession(session.id)
     await loadMessages()
   } catch (error) {
     console.error('选择会话失败:', error)
@@ -199,7 +199,7 @@ async function handleDeleteSession(session: ChatSession) {
     agentStore.sessions = agentStore.sessions.filter(s => s.id !== session.id)
     // 如果删除的是当前会话，清空当前会话
     if (agentStore.currentSession?.id === session.id) {
-      agentStore.setCurrentSession(null)
+      agentStore.currentSession = null
     }
   } catch (error) {
     console.error('删除会话失败:', error)
@@ -210,7 +210,7 @@ async function handleClearAllSessions() {
   try {
     // 清空所有会话
     agentStore.sessions = []
-    agentStore.setCurrentSession(null)
+    agentStore.currentSession = null
   } catch (error) {
     console.error('清空所有会话失败:', error)
   }
@@ -229,10 +229,10 @@ async function handleSendMessage(content: string) {
     // 如果没有当前会话，创建一个新会话
     if (!currentSession.value) {
       const newSession = await agentStore.createSession(
-        Number(selectedAgent.value.id),
+        selectedAgent.value.id,
         content.length > 30 ? content.substring(0, 30) + '...' : content
       )
-      agentStore.setCurrentSession(newSession)
+      agentStore.setCurrentSession(newSession.id)
     }
     
     await agentStore.sendMessage(content)
