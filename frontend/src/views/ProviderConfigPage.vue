@@ -214,6 +214,7 @@ import { http } from '@/utils/http'
 import { toast } from '@/utils/toast'
 import ProviderConfigModal from '@/components/ProviderConfigModal.vue'
 import IconComponents from '@/components/IconComponents.vue'
+import { confirmDialog } from '@/utils/confirm'
 import type { Provider, ProviderConfig, Model } from '@/types/provider'
 
 // 数据状态
@@ -454,7 +455,7 @@ const editConfig = (config: ProviderConfig) => {
 
 // 删除配置
 const deleteConfig = async (configId: string | undefined) => {
-  if (!configId || !confirm('确定要删除这个配置吗？')) return
+  if (!configId || !(await confirmDialog('确定要删除这个配置吗？'))) return
   
   try {
     await http.delete(`/api/provider-configs/${configId}`)

@@ -236,6 +236,7 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, watch } from 'vue'
 import type { Agent, ChatSession, ChatMessage } from '@/types/agent'
+import { confirmDialog } from '@/utils/confirm'
 
 // Props
 interface Props {
@@ -374,8 +375,8 @@ function handleNewSession() {
   emit('new-session')
 }
 
-function handleClearChat() {
-  if (confirm('确定要清空当前对话吗？')) {
+async function handleClearChat() {
+  if (await confirmDialog('确定要清空当前对话吗？')) {
     emit('clear-chat')
   }
 }

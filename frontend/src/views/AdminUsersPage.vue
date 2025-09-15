@@ -211,6 +211,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import IconComponents from '@/components/icons/IconComponents.vue'
+import { confirmDialog } from '@/utils/confirm'
 
 // 类型定义
 interface User {
@@ -364,8 +365,8 @@ const toggleUserStatus = (user: User) => {
   user.status = user.status === 'active' ? 'suspended' : 'active'
 }
 
-const deleteUser = (user: User) => {
-  if (confirm(`确定要删除用户 ${user.username} 吗？`)) {
+const deleteUser = async (user: User) => {
+  if (await confirmDialog(`确定要删除用户 ${user.username} 吗？`)) {
     const index = users.value.findIndex(u => u.id === user.id)
     if (index > -1) {
       users.value.splice(index, 1)

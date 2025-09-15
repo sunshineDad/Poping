@@ -162,6 +162,7 @@
 import { ref, computed, onMounted } from 'vue'
 import type { Agent } from '@/types/agent'
 import AgentCreateForm from './AgentCreateForm.vue'
+import { confirmDialog } from '@/utils/confirm'
 
 // Props
 interface Props {
@@ -220,8 +221,8 @@ function handleEditAgent(agent: Agent) {
   showCreateModal.value = true
 }
 
-function handleDeleteAgent(agent: Agent) {
-  if (confirm(`确定要删除智能体 "${agent.name}" 吗？此操作不可撤销。`)) {
+async function handleDeleteAgent(agent: Agent) {
+  if (await confirmDialog(`确定要删除智能体 "${agent.name}" 吗？此操作不可撤销。`)) {
     emit('delete-agent', agent)
   }
 }

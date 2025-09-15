@@ -94,6 +94,7 @@ import {
   EyeIcon,
   EyeOffIcon
 } from '@/components/icons'
+import { confirmDialog } from '@/utils/confirm'
 
 interface Props {
   apiKeys: ApiKey[]
@@ -140,14 +141,14 @@ const copyKey = async (key: string) => {
   }
 }
 
-const regenerateKey = (keyId: string) => {
-  if (confirm('确定要重新生成此API密钥吗？原密钥将失效。')) {
+const regenerateKey = async (keyId: string) => {
+  if (await confirmDialog('确定要重新生成此API密钥吗？原密钥将失效。')) {
     emit('regenerate', keyId)
   }
 }
 
-const deleteKey = (keyId: string) => {
-  if (confirm('确定要删除此API密钥吗？此操作不可撤销。')) {
+const deleteKey = async (keyId: string) => {
+  if (await confirmDialog('确定要删除此API密钥吗？此操作不可撤销。')) {
     emit('delete', keyId)
   }
 }

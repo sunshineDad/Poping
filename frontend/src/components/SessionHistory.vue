@@ -183,6 +183,7 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue'
 import type { ChatSession } from '@/types/agent'
+import { confirmDialog } from '@/utils/confirm'
 
 // Props
 interface Props {
@@ -323,15 +324,15 @@ function handleRenameSession(session: ChatSession) {
   })
 }
 
-function handleDeleteSession(session: ChatSession) {
+async function handleDeleteSession(session: ChatSession) {
   const title = session.title || getSessionTitle(session)
-  if (confirm(`确定要删除对话 "${title}" 吗？此操作不可撤销。`)) {
+  if (await confirmDialog(`确定要删除对话 "${title}" 吗？此操作不可撤销。`)) {
     emit('delete-session', session)
   }
 }
 
-function handleClearAll() {
-  if (confirm('确定要清空所有对话历史吗？此操作不可撤销。')) {
+async function handleClearAll() {
+  if (await confirmDialog('确定要清空所有对话历史吗？此操作不可撤销。')) {
     emit('clear-all')
   }
 }

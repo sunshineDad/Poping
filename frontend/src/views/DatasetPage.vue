@@ -171,6 +171,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import IconComponents from '@/components/icons/IconComponents.vue'
+import { confirmDialog } from '@/utils/confirm'
 
 // 类型定义
 interface Dataset {
@@ -338,9 +339,9 @@ const shareDataset = (dataset: Dataset) => {
   console.log('分享数据集:', dataset.name)
 }
 
-const deleteDataset = (dataset: Dataset) => {
+const deleteDataset = async (dataset: Dataset) => {
   // 显示删除确认对话框
-  if (confirm(`确定要删除数据集 "${dataset.name}" 吗？`)) {
+  if (await confirmDialog(`确定要删除数据集 "${dataset.name}" 吗？`)) {
     console.log('删除数据集:', dataset.name)
   }
 }

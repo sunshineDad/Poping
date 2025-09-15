@@ -249,6 +249,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import IconComponents from '@/components/icons/IconComponents.vue'
+import { confirmDialog } from '@/utils/confirm'
 
 // 类型定义
 interface McpConfig {
@@ -421,8 +422,8 @@ const editConfig = (config: McpConfig) => {
   showEditModal.value = true
 }
 
-const deleteConfig = (config: McpConfig) => {
-  if (confirm(`确定要删除配置 "${config.name}" 吗？`)) {
+const deleteConfig = async (config: McpConfig) => {
+  if (await confirmDialog(`确定要删除配置 "${config.name}" 吗？`)) {
     const index = configs.value.findIndex(c => c.id === config.id)
     if (index > -1) {
       configs.value.splice(index, 1)
