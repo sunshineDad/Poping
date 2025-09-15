@@ -14,9 +14,9 @@ spring:
   # 数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/poping?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    url: jdbc:mysql://47.99.118.208:3306/poping?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
     username: root
-    password: 111111
+    password: mysql20240327
     hikari:
       minimum-idle: 5
       maximum-pool-size: 20
@@ -25,10 +25,10 @@ spring:
       pool-name: PopingHikariCP
       max-lifetime: 1800000
       connection-timeout: 30000
-  
+
   # Redis配置
   redis:
-    host: localhost
+    host: 47.99.118.208
     port: 6379
     password: redis123
     database: 0
@@ -39,19 +39,19 @@ spring:
         max-wait: -1ms
         max-idle: 8
         min-idle: 0
-  
+
   # Jackson配置
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
     default-property-inclusion: non_null
-  
+
   # 邮件配置
   mail:
     host: smtp.163.com
     port: 25
-    username: localhost@163.com
-    password: localhost
+    username: 15724433688@163.com
+    password: NQhk9wD7JJxbsGDm
     properties:
       mail:
         smtp:
