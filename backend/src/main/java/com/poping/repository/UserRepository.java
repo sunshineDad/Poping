@@ -23,9 +23,10 @@ public interface UserRepository extends BaseMapper<User> {
      * - 输入: String email - 用户邮箱
      * - 输出: User - 用户实体对象
      * - 角色: 根据邮箱查找用户，用于登录验证
-     * - 逻辑: 1. 根据email查询 2. 返回用户信息
+     * - 逻辑: 1. 根据email查询 2. 明确映射password字段到passwordHash 3. 返回用户信息
      */
-    @Select("SELECT * FROM users WHERE email = #{email} AND status != 'deleted'")
+    @Select("SELECT id, user_id, email, password as passwordHash, username, " +
+            "status, created_at, updated_at FROM users WHERE email = #{email} AND status != 'deleted'")
     User findByEmail(@Param("email") String email);
     
     /**

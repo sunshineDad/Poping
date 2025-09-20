@@ -23,7 +23,7 @@ import javax.validation.Valid;
  * 数据集管理控制器
  */
 @RestController
-@RequestMapping("/api/v1/datasets")
+@RequestMapping("/api/datasets")
 @Validated
 public class DatasetController {
 

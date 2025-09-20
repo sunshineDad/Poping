@@ -10,6 +10,7 @@ import ProviderConfigPage from '@/views/ProviderConfigPage.vue'
 import McpConfigPage from '@/views/McpConfigPage.vue'
 import MarketPage from '@/views/MarketPage.vue'
 import McpToolDetail from '@/views/McpToolDetail.vue'
+import TestNotificationsPage from '@/views/TestNotificationsPage.vue'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 
 const router = createRouter({
@@ -60,6 +61,10 @@ const router = createRouter({
     {
       path: '/market',
       redirect: '/dashboard/marketplace'
+    },
+    {
+      path: '/datasets',
+      redirect: '/dashboard/dataset'
     },
     // 重定向 /overview 到 /dashboard
     {
@@ -186,6 +191,15 @@ const router = createRouter({
           component: PlaygroundPage,
           meta: {
             title: '游乐场 - Poping',
+            requiresAuth: true
+          }
+        },
+        {
+          path: 'test-notifications',
+          name: 'TestNotifications',
+          component: TestNotificationsPage,
+          meta: {
+            title: '通知组件测试 - Poping',
             requiresAuth: true
           }
         },

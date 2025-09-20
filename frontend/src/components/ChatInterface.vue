@@ -27,7 +27,7 @@
         </button>
         
         <button
-          v-if="currentSession && messages.length > 0"
+          v-if="currentSession && currentSessionMessages.length > 0"
           class="action-btn"
           @click="handleClearChat"
           title="清空对话"
@@ -55,7 +55,7 @@
       </div>
 
       <!-- 欢迎消息 -->
-      <div v-else-if="messages.length === 0" class="welcome-state">
+      <div v-else-if="currentSessionMessages.length === 0" class="welcome-state">
         <div class="welcome-avatar">
           <svg class="avatar-icon" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.1 3.89 23 5 23H19C20.1 23 21 22.1 21 21V9M19 9H14V4H5V21H19V9Z"/>
@@ -86,7 +86,7 @@
       <!-- 消息列表 -->
       <div v-else class="message-list">
         <div
-          v-for="message in messages"
+          v-for="message in currentSessionMessages"
           :key="message.id"
           class="message-wrapper"
           :class="message.role"
@@ -238,21 +238,17 @@ import { ref, computed, nextTick, watch } from 'vue'
 import type { Agent, ChatSession, ChatMessage } from '@/types/agent'
 import { confirmDialog } from '@/utils/confirm'
 
-// Props
-interface Props {
-  currentAgent?: Agent | null
-  currentSession?: ChatSession | null
-  messages: ChatMessage[]
-  isLoading?: boolean
-  isTyping?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  currentAgent: null,
-  currentSession: null,
-  isLoading: false,
-  isTyping: false
-})
+// 使用 store
+const { 
+  currentAgent, 
+  currentSession, 
+  currentSessionMessages, 
+  isLoading, 
+  isTyping, 
+  error,
+  sendMessage,
+  clearError
+} = useAgentStore()
 
 // Emits
 interface Emits {
@@ -297,14 +293,14 @@ const quickSuggestions = ref([
 // 计算属性
 const canSend = computed(() => {
   return inputMessage.value.trim().length > 0 && 
-         !props.isTyping && 
-         !props.isLoading &&
+         !isTyping.value && 
+         !isLoading.value &&
          inputMessage.value.length <= 2000
 })
 
 // 监听消息变化，自动滚动到底部
 watch(
-  () => props.messages,
+  () => currentSessionMessages.value,
   () => {
     nextTick(() => {
       scrollToBottom()
@@ -315,9 +311,9 @@ watch(
 
 // 监听正在输入状态
 watch(
-  () => props.isTyping,
-  (isTyping) => {
-    if (isTyping) {
+  () => isTyping.value,
+  (typing) => {
+    if (typing) {
       nextTick(() => {
         scrollToBottom()
       })
@@ -326,14 +322,18 @@ watch(
 )
 
 // 方法
-function handleSendMessage() {
+async function handleSendMessage() {
   if (!canSend.value) return
   
   const content = inputMessage.value.trim()
   if (content) {
-    emit('send-message', content)
-    inputMessage.value = ''
-    resetInputHeight()
+    try {
+      await sendMessage(content)
+      inputMessage.value = ''
+      resetInputHeight()
+    } catch (err) {
+      console.error('发送消息失败:', err)
+    }
   }
 }
 

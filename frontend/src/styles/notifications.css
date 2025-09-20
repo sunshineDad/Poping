@@ -1,0 +1,562 @@
+/* Element-UI 通知组件黑白配色样式 */
+
+/* 消息提示样式 (Message) */
+.el-message {
+  background-color: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px !important;
+  padding: 12px 16px !important;
+  color: #111827 !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+.el-message .el-message__content {
+  color: #111827 !important;
+  font-weight: 500 !important;
+}
+
+.el-message .el-message__closeBtn {
+  color: #6b7280 !important;
+  font-size: 16px !important;
+}
+
+.el-message .el-message__closeBtn:hover {
+  color: #111827 !important;
+}
+
+/* 消息类型样式 */
+.message-success {
+  border-left: 4px solid #111827 !important;
+}
+
+.message-success .el-message__icon {
+  color: #111827 !important;
+}
+
+.message-error {
+  border-left: 4px solid #dc2626 !important;
+}
+
+.message-error .el-message__icon {
+  color: #dc2626 !important;
+}
+
+.message-warning {
+  border-left: 4px solid #f59e0b !important;
+}
+
+.message-warning .el-message__icon {
+  color: #f59e0b !important;
+}
+
+.message-info {
+  border-left: 4px solid #6b7280 !important;
+}
+
+.message-info .el-message__icon {
+  color: #6b7280 !important;
+}
+
+/* 通知消息样式 (Notification) */
+.notification-black-white {
+  background-color: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px !important;
+}
+
+.notification-black-white .el-notification__title {
+  color: #111827 !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+}
+
+.notification-black-white .el-notification__content {
+  color: #4b5563 !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+.notification-black-white .el-notification__closeBtn {
+  color: #6b7280 !important;
+  font-size: 16px !important;
+}
+
+.notification-black-white .el-notification__closeBtn:hover {
+  color: #111827 !important;
+}
+
+/* 成功通知样式 */
+.notification-success.notification-black-white {
+  border-left: 4px solid #111827 !important;
+}
+
+.notification-success.notification-black-white .el-notification__icon {
+  color: #111827 !important;
+}
+
+/* 错误通知样式 */
+.notification-error.notification-black-white {
+  border-left: 4px solid #dc2626 !important;
+}
+
+.notification-error.notification-black-white .el-notification__icon {
+  color: #dc2626 !important;
+}
+
+.notification-error.notification-black-white .el-notification__title {
+  color: #dc2626 !important;
+}
+
+/* 警告通知样式 */
+.notification-warning.notification-black-white {
+  border-left: 4px solid #f59e0b !important;
+}
+
+.notification-warning.notification-black-white .el-notification__icon {
+  color: #f59e0b !important;
+}
+
+.notification-warning.notification-black-white .el-notification__title {
+  color: #f59e0b !important;
+}
+
+/* 信息通知样式 */
+.notification-info.notification-black-white {
+  border-left: 4px solid #6b7280 !important;
+}
+
+.notification-info.notification-black-white .el-notification__icon {
+  color: #6b7280 !important;
+}
+
+/* 消息框样式 - 优化版本 */
+.message-box-black-white {
+  background-color: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  min-width: 420px !important;
+  max-width: 500px !important;
+}
+
+.message-box-black-white .el-message-box__header {
+  background-color: #ffffff !important;
+  border-bottom: none !important;
+  padding: 24px 24px 0 !important;
+  position: relative !important;
+}
+
+.message-box-black-white .el-message-box__title {
+  color: #111827 !important;
+  font-weight: 600 !important;
+  font-size: 20px !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+  padding-right: 40px !important;
+}
+
+.message-box-black-white .el-message-box__headerbtn {
+  color: #9ca3af !important;
+  font-size: 18px !important;
+  position: absolute !important;
+  top: 24px !important;
+  right: 24px !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 6px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
+.message-box-black-white .el-message-box__headerbtn:hover {
+  color: #111827 !important;
+  background-color: #f3f4f6 !important;
+}
+
+.message-box-black-white .el-message-box__content {
+  padding: 20px 24px !important;
+  color: #6b7280 !important;
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 16px !important;
+}
+
+.message-box-black-white .el-message-box__message {
+  color: #6b7280 !important;
+  margin: 0 !important;
+  flex: 1 !important;
+}
+
+.message-box-black-white .el-message-box__btns {
+  padding: 0 24px 24px !important;
+  text-align: right !important;
+  border-top: none !important;
+  background-color: #ffffff !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 12px !important;
+}
+
+/* 确认按钮样式 - 优化版本 */
+.confirm-button-black-white {
+  background-color: #111827 !important;
+  border-color: #111827 !important;
+  color: #ffffff !important;
+  font-weight: 500 !important;
+  padding: 12px 20px !important;
+  border-radius: 8px !important;
+  font-size: 15px !important;
+  min-width: 80px !important;
+  height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: pointer !important;
+  border: none !important;
+  outline: none !important;
+}
+
+.confirm-button-black-white:hover {
+  background-color: #1f2937 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.15) !important;
+}
+
+.confirm-button-black-white:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 4px rgba(17, 24, 39, 0.1) !important;
+}
+
+.confirm-button-black-white:focus {
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1) !important;
+}
+
+/* 取消按钮样式 - 优化版本 */
+.cancel-button-black-white {
+  background-color: #ffffff !important;
+  border: 1px solid #d1d5db !important;
+  color: #6b7280 !important;
+  font-weight: 500 !important;
+  padding: 12px 20px !important;
+  border-radius: 8px !important;
+  font-size: 15px !important;
+  min-width: 80px !important;
+  height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-right: 0 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: pointer !important;
+  outline: none !important;
+}
+
+.cancel-button-black-white:hover {
+  background-color: #f9fafb !important;
+  border-color: #9ca3af !important;
+  color: #374151 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.cancel-button-black-white:active {
+  transform: translateY(0) !important;
+  box-shadow: none !important;
+}
+
+.cancel-button-black-white:focus {
+  box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.1) !important;
+}
+
+/* 输入框样式 - 优化版本 */
+.message-box-black-white .el-input__inner {
+  border: 1px solid #d1d5db !important;
+  border-radius: 8px !important;
+  padding: 12px 16px !important;
+  font-size: 15px !important;
+  color: #111827 !important;
+  background-color: #ffffff !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  width: 100% !important;
+  height: 44px !important;
+  line-height: 1.4 !important;
+  outline: none !important;
+}
+
+.message-box-black-white .el-input__inner:focus {
+  border-color: #111827 !important;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1) !important;
+  outline: none !important;
+}
+
+.message-box-black-white .el-input__inner::placeholder {
+  color: #9ca3af !important;
+  font-size: 15px !important;
+}
+
+.message-box-black-white .el-input {
+  margin-top: 16px !important;
+}
+
+/* 图标样式 - 优化版本 */
+.message-box-black-white .el-message-box__status {
+  font-size: 28px !important;
+  margin-right: 0 !important;
+  flex-shrink: 0 !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.message-box-black-white .el-message-box__status.el-icon-warning {
+  color: #f59e0b !important;
+}
+
+.message-box-black-white .el-message-box__status.el-icon-info {
+  color: #3b82f6 !important;
+}
+
+.message-box-black-white .el-message-box__status.el-icon-success {
+  color: #10b981 !important;
+}
+
+.message-box-black-white .el-message-box__status.el-icon-error {
+  color: #ef4444 !important;
+}
+
+/* 响应式设计 - 优化版本 */
+@media (max-width: 768px) {
+  .message-box-black-white {
+    margin: 20px !important;
+    width: calc(100% - 40px) !important;
+    min-width: 280px !important;
+    max-width: calc(100% - 40px) !important;
+  }
+  
+  .message-box-black-white .el-message-box__header {
+    padding: 20px 20px 0 !important;
+  }
+  
+  .message-box-black-white .el-message-box__title {
+    font-size: 18px !important;
+    padding-right: 36px !important;
+  }
+  
+  .message-box-black-white .el-message-box__headerbtn {
+    top: 20px !important;
+    right: 20px !important;
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 16px !important;
+  }
+  
+  .message-box-black-white .el-message-box__content {
+    padding: 16px 20px !important;
+    font-size: 14px !important;
+    gap: 12px !important;
+  }
+  
+  .message-box-black-white .el-message-box__status {
+    font-size: 24px !important;
+    width: 28px !important;
+    height: 28px !important;
+  }
+  
+  .message-box-black-white .el-message-box__btns {
+    padding: 0 20px 20px !important;
+    flex-direction: column-reverse !important;
+    gap: 8px !important;
+  }
+  
+  .confirm-button-black-white,
+  .cancel-button-black-white {
+    width: 100% !important;
+    padding: 12px 16px !important;
+    font-size: 15px !important;
+    height: 44px !important;
+  }
+  
+  .message-box-black-white .el-input__inner {
+    font-size: 16px !important; /* 防止iOS缩放 */
+  }
+}
+
+/* 消息框样式 */
+.message-box-black-white {
+  background-color: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.message-box-black-white .el-message-box__header {
+  background-color: #f9fafb !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  padding: 20px 24px 16px !important;
+}
+
+.message-box-black-white .el-message-box__title {
+  color: #111827 !important;
+  font-weight: 600 !important;
+  font-size: 18px !important;
+}
+
+.message-box-black-white .el-message-box__headerbtn {
+  color: #6b7280 !important;
+  font-size: 16px !important;
+}
+
+.message-box-black-white .el-message-box__headerbtn:hover {
+  color: #111827 !important;
+}
+
+.message-box-black-white .el-message-box__content {
+  padding: 24px !important;
+  color: #4b5563 !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+
+.message-box-black-white .el-message-box__message {
+  color: #4b5563 !important;
+}
+
+.message-box-black-white .el-message-box__btns {
+  padding: 16px 24px 24px !important;
+  text-align: right !important;
+  border-top: 1px solid #e5e7eb !important;
+  background-color: #f9fafb !important;
+}
+
+/* 确认按钮样式 */
+.confirm-button-black-white {
+  background-color: #111827 !important;
+  border-color: #111827 !important;
+  color: #ffffff !important;
+  font-weight: 500 !important;
+  padding: 8px 16px !important;
+  border-radius: 6px !important;
+  font-size: 14px !important;
+  transition: all 0.2s ease !important;
+}
+
+.confirm-button-black-white:hover {
+  background-color: #1f2937 !important;
+  border-color: #1f2937 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.confirm-button-black-white:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 取消按钮样式 */
+.cancel-button-black-white {
+  background-color: #ffffff !important;
+  border: 1px solid #d1d5db !important;
+  color: #6b7280 !important;
+  font-weight: 500 !important;
+  padding: 8px 16px !important;
+  border-radius: 6px !important;
+  font-size: 14px !important;
+  margin-right: 12px !important;
+  transition: all 0.2s ease !important;
+}
+
+.cancel-button-black-white:hover {
+  background-color: #f9fafb !important;
+  border-color: #9ca3af !important;
+  color: #374151 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.cancel-button-black-white:active {
+  transform: translateY(0) !important;
+  box-shadow: none !important;
+}
+
+/* 输入框样式 */
+.message-box-black-white .el-input__inner {
+  border: 1px solid #d1d5db !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  color: #111827 !important;
+  background-color: #ffffff !important;
+  transition: all 0.2s ease !important;
+}
+
+.message-box-black-white .el-input__inner:focus {
+  border-color: #111827 !important;
+  box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.1) !important;
+  outline: none !important;
+}
+
+.message-box-black-white .el-input__inner::placeholder {
+  color: #9ca3af !important;
+}
+
+/* 图标样式 */
+.message-box-black-white .el-message-box__status {
+  font-size: 24px !important;
+  margin-right: 16px !important;
+}
+
+.message-box-black-white .el-message-box__status.el-icon-warning {
+  color: #f59e0b !important;
+}
+
+.message-box-black-white .el-message-box__status.el-icon-info {
+  color: #6b7280 !important;
+}
+
+.message-box-black-white .el-message-box__status.el-icon-success {
+  color: #111827 !important;
+}
+
+.message-box-black-white .el-message-box__status.el-icon-error {
+  color: #dc2626 !important;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .message-box-black-white {
+    margin: 20px !important;
+    width: calc(100% - 40px) !important;
+  }
+  
+  .message-box-black-white .el-message-box__header {
+    padding: 16px 20px 12px !important;
+  }
+  
+  .message-box-black-white .el-message-box__title {
+    font-size: 16px !important;
+  }
+  
+  .message-box-black-white .el-message-box__content {
+    padding: 20px !important;
+  }
+  
+  .message-box-black-white .el-message-box__btns {
+    padding: 12px 20px 20px !important;
+  }
+  
+  .confirm-button-black-white,
+  .cancel-button-black-white {
+    padding: 10px 16px !important;
+    font-size: 14px !important;
+  }
+}

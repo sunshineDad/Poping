@@ -17,7 +17,7 @@ public class Session {
     /**
      * AIGents会话ID
      */
-    @TableField("aigents_session_id")
+    @TableField("external_session_id")
     private String aigentsSessionId;
     
     /**
@@ -29,12 +29,12 @@ public class Session {
      * 用户ID
      */
     @TableField("user_id")
-    private Long userId;
+    private String userId;
     
     /**
      * 智能体ID
      */
-    @TableField("agent_id")
+    @TableField("agent_config_id")
     private Long agentId;
     
     /**
@@ -43,29 +43,29 @@ public class Session {
     private String status;
     
     /**
-     * 消息数量
+     * 消息数量 - 数据库中没有此字段，移除映射
      */
-    @TableField("message_count")
+    @TableField(exist = false)
     private Integer messageCount;
     
     /**
-     * 最后活动时间
+     * 最后活动时间 - 使用updated_at字段
      */
-    @TableField("last_activity")
+    @TableField("updated_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastActivity;
     
     /**
      * 创建时间
      */
-    @TableField(fill = FieldFill.INSERT)
+    @TableField(value = "created_at", fill = FieldFill.INSERT)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
     
     /**
      * 更新时间
      */
-    @TableField(fill = FieldFill.INSERT_UPDATE)
+    @TableField(value = "updated_at", fill = FieldFill.INSERT_UPDATE)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
     
@@ -100,11 +100,11 @@ public class Session {
         this.title = title;
     }
     
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
     
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
     

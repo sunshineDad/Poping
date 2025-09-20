@@ -1,176 +1,208 @@
 <template>
-  <div class="dataset-page dark-theme">
-    <div class="page-header">
-      <div class="header-left">
-        <h1 class="page-title">数据集管理</h1>
-        <p class="page-subtitle">集中管理数据集，追踪解析进度与文件状态</p>
+  <div class="page-container">
+    <!-- 导航栏 -->
+    <nav class="navbar">
+      <div class="nav-links">
+        <router-link to="/" class="nav-link">首页</router-link>
+        <router-link to="/overview" class="nav-link">概览</router-link>
+        <router-link to="/playground" class="nav-link">Playground</router-link>
+        <router-link to="/agents" class="nav-link">智能体</router-link>
+        <router-link to="/datasets" class="nav-link active">数据集</router-link>
+        <router-link to="/market" class="nav-link">市场</router-link>
       </div>
-      <div class="header-actions">
-        <button class="btn-secondary" @click="loadDatasets">
-          刷新列表
-        </button>
-        <button class="btn-primary" @click="openCreateDialog">
-          <IconComponents name="plus" class="btn-icon" />
+      <div class="nav-actions">
+        <router-link to="/profile" class="nav-link">个人中心</router-link>
+      </div>
+    </nav>
+
+    <!-- 主内容区域 -->
+    <main class="main-content">
+      <!-- 页面头部 -->
+      <div class="page-header">
+        <div class="header-content">
+          <h1 class="page-title">数据集管理</h1>
+          <p class="page-subtitle">集中管理数据集，追踪解析进度与文件状态</p>
+        </div>
+        <button class="btn btn-primary" @click="openCreateDialog">
+          <icon-components name="plus" class="btn-icon" />
           创建数据集
         </button>
       </div>
-    </div>
 
-    <div class="filter-bar">
-      <div class="search-box">
-        <IconComponents name="search" class="search-icon" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="搜索数据集标题或标签"
-          class="search-input"
-        />
+      <!-- 搜索和筛选区域 -->
+      <div class="search-filters">
+        <div class="search-box">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="搜索数据集标题、描述或标签..."
+            class="search-input"
+            @keyup.enter="performSearch"
+          />
+          <button class="search-btn" @click="performSearch">
+            <SimpleIcon />
+          </button>
+        </div>
+        <div class="filter-group">
+          <select v-model="selectedType" class="filter-select">
+            <option value="">所有类型</option>
+            <option v-for="item in typeOptions" :key="item.value" :value="item.value">
+              {{ item.label }}
+            </option>
+          </select>
+          <select v-model="selectedStatus" class="filter-select">
+            <option value="">所有状态</option>
+            <option value="PENDING">待处理</option>
+            <option value="PROCESSING">处理中</option>
+            <option value="COMPLETED">已完成</option>
+            <option value="FAILED">失败</option>
+          </select>
+          <select v-model="sortBy" class="filter-select">
+            <option value="created">按创建时间</option>
+            <option value="updated">按更新时间</option>
+            <option value="name">按名称</option>
+            <option value="size">按大小</option>
+          </select>
+        </div>
       </div>
 
-      <div class="filter-controls">
-        <select v-model="selectedType" class="filter-select">
-          <option value="">所有类型</option>
-          <option v-for="item in typeOptions" :key="item.value" :value="item.value">
-            {{ item.label }}
-          </option>
-        </select>
+      <!-- 内容区域 -->
+      <div class="content-area">
+        <!-- 加载状态 -->
+        <div v-if="loading" class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>加载数据集中...</p>
+        </div>
 
-        <select v-model="selectedStatus" class="filter-select">
-          <option value="">所有状态</option>
-          <option value="PROCESSING">处理中</option>
-          <option value="READY">已就绪</option>
-          <option value="FAILED">解析失败</option>
-        </select>
+        <!-- 空状态 -->
+        <div v-else-if="datasets.length === 0" class="empty-state">
+          <div class="empty-icon">📊</div>
+          <h3 class="empty-title">暂无数据集</h3>
+          <p class="empty-description">创建数据集并上传文件，系统会自动保存并解析。</p>
+          <button class="btn btn-primary" @click="openCreateDialog">
+            <icon-components name="plus" class="btn-icon" />
+            创建数据集
+          </button>
+        </div>
 
-        <select v-model="sortBy" class="filter-select">
-          <option value="created">创建时间</option>
-          <option value="updated">更新时间</option>
-          <option value="name">名称</option>
-          <option value="size">大小</option>
-        </select>
-      </div>
-    </div>
+        <!-- 数据集网格 -->
+        <div v-else class="datasets-grid">
+          <div
+            v-for="dataset in displayedDatasets"
+            :key="dataset.datasetId"
+            class="dataset-card"
+            @click="openDatasetDetail(dataset)"
+          >
+            <div class="card-header">
+              <div class="dataset-type">
+                <icon-components :name="getTypeIcon(dataset.type)" class="type-icon" />
+                <span class="type-label">{{ getTypeLabel(dataset.type) }}</span>
+              </div>
+              <div class="dataset-status" :class="statusClass(dataset.status)">
+                {{ statusLabel(dataset.status) }}
+              </div>
+            </div>
 
-    <div v-if="loading" class="loading-state">
-      <div class="loading-spinner"></div>
-      <p>加载数据集中...</p>
-    </div>
+            <div class="card-content">
+              <h3 class="dataset-name">{{ dataset.title }}</h3>
+              <p class="dataset-description">{{ dataset.description || '暂无描述信息' }}</p>
 
-    <div v-else-if="datasets.length === 0" class="empty-state">
-      <div class="empty-icon">
-        <IconComponents name="dataset" size="lg" />
-      </div>
-      <h3>暂无数据集</h3>
-      <p>创建数据集并上传文件，系统会自动保存并解析。</p>
-      <button class="btn-primary" @click="openCreateDialog">
-        <IconComponents name="plus" class="btn-icon" />
-        创建数据集
-      </button>
-    </div>
+              <div v-if="dataset.status === 'PROCESSING'" class="dataset-progress">
+                <div class="progress-track">
+                  <div class="progress-value" :style="{ width: dataset.parseProgress + '%' }"></div>
+                </div>
+                <span class="progress-text">{{ dataset.parseProgress }}%</span>
+              </div>
 
-    <div v-else class="dataset-grid">
-      <div
-        v-for="dataset in displayedDatasets"
-        :key="dataset.datasetId"
-        class="dataset-card"
-        @click="openDatasetDetail(dataset)"
-      >
-        <div class="card-header">
-          <div class="dataset-type">
-            <IconComponents :name="getTypeIcon(dataset.type)" class="type-icon" />
-            <span class="type-label">{{ getTypeLabel(dataset.type) }}</span>
-          </div>
-          <div class="dataset-status" :class="statusClass(dataset.status)">
-            {{ statusLabel(dataset.status) }}
+              <div class="dataset-stats">
+                <div class="stat-item">
+                  <span class="stat-label">记录数</span>
+                  <span class="stat-value">{{ formatNumber(dataset.recordCount) }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">文件数</span>
+                  <span class="stat-value">{{ dataset.fileCount }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">大小</span>
+                  <span class="stat-value">{{ formatSize(dataset.totalSize) }}</span>
+                </div>
+              </div>
+
+              <div v-if="dataset.tags?.length" class="dataset-tags">
+                <span v-for="tag in dataset.tags" :key="tag" class="tag">{{ tag }}</span>
+              </div>
+            </div>
+
+            <div class="card-footer" @click.stop>
+              <div class="dataset-meta">
+                <span class="meta-item">创建于 {{ formatDate(dataset.createdAt) }}</span>
+                <span class="meta-item">更新于 {{ formatDate(dataset.updatedAt) }}</span>
+              </div>
+              <div class="card-actions">
+                <button class="action-btn danger" @click="handleDelete(dataset)">
+                  <icon-components name="delete" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="card-content">
-          <h3 class="dataset-name">{{ dataset.title }}</h3>
-          <p class="dataset-description">{{ dataset.description || '暂无描述信息' }}</p>
-
-          <div v-if="dataset.status === 'PROCESSING'" class="dataset-progress">
-            <div class="progress-track">
-              <div class="progress-value" :style="{ width: dataset.parseProgress + '%' }"></div>
-            </div>
-            <span class="progress-text">{{ dataset.parseProgress }}%</span>
-          </div>
-
-          <div class="dataset-stats">
-            <div class="stat-item">
-              <span class="stat-label">记录数</span>
-              <span class="stat-value">{{ formatNumber(dataset.recordCount) }}</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">文件数</span>
-              <span class="stat-value">{{ dataset.fileCount }}</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">大小</span>
-              <span class="stat-value">{{ formatSize(dataset.totalSize) }}</span>
-            </div>
-          </div>
-
-          <div v-if="dataset.tags?.length" class="dataset-tags">
-            <span v-for="tag in dataset.tags" :key="tag" class="tag">{{ tag }}</span>
-          </div>
-        </div>
-
-        <div class="card-footer" @click.stop>
-          <div class="dataset-meta">
-            <span class="meta-item">创建于 {{ formatDate(dataset.createdAt) }}</span>
-            <span class="meta-item">更新于 {{ formatDate(dataset.updatedAt) }}</span>
-          </div>
-          <div class="card-actions">
-            <button class="action-btn danger" @click="handleDelete(dataset)">
-              <IconComponents name="delete" />
+        <!-- 分页 -->
+        <div v-if="totalPages > 1" class="pagination">
+          <button class="pagination-button" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
+            上一页
+          </button>
+          <div class="pagination-numbers">
+            <button
+              v-for="page in visiblePages"
+              :key="page"
+              class="pagination-button"
+              :class="{ active: page === currentPage }"
+              @click="goToPage(page)"
+            >
+              {{ page }}
             </button>
           </div>
+          <button class="pagination-button" :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)">
+            下一页
+          </button>
         </div>
       </div>
-    </div>
+    </main>
 
-    <div v-if="totalPages > 1" class="pagination">
-      <button class="page-btn" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
-        上一页
-      </button>
-      <div class="page-numbers">
-        <button
-          v-for="page in visiblePages"
-          :key="page"
-          class="page-number"
-          :class="{ active: page === currentPage }"
-          @click="goToPage(page)"
-        >
-          {{ page }}
-        </button>
-      </div>
-      <button class="page-btn" :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)">
-        下一页
-      </button>
-    </div>
-
+    <!-- 创建数据集模态框 -->
     <div v-if="createDialogVisible" class="modal-overlay">
-      <div class="modal">
+      <div class="modal-content">
         <div class="modal-header">
-          <h2>创建数据集</h2>
+          <h2 class="modal-title">创建数据集</h2>
           <button class="modal-close" @click="closeCreateDialog">×</button>
         </div>
+        
         <div class="modal-body">
           <div class="form-group">
-            <label>标题</label>
-            <input v-model="createForm.title" type="text" placeholder="例如：客户反馈数据集" required />
+            <label class="form-label">标题</label>
+            <input 
+              v-model="createForm.title" 
+              type="text" 
+              class="form-input"
+              placeholder="例如：客户反馈数据集" 
+              required 
+            />
           </div>
+          
           <div class="form-group">
-            <label>描述</label>
+            <label class="form-label">描述</label>
             <textarea
               v-model="createForm.description"
+              class="form-textarea"
               rows="3"
               placeholder="简要描述数据集内容，如：2024年客户反馈文本数据，包含情感分析标注"
             ></textarea>
           </div>
+          
           <div class="form-group">
-            <label>标签 (最多3个)</label>
+            <label class="form-label">标签 (最多3个)</label>
             <div class="tag-editor">
               <div class="selected-tags">
                 <span v-for="(tag, index) in createForm.tags" :key="tag" class="tag selected">
@@ -181,55 +213,64 @@
               <input
                 v-model="tagInput"
                 type="text"
+                class="tag-input"
                 :disabled="createForm.tags.length >= 3"
                 placeholder="输入标签后按 Enter 添加"
                 @keydown.enter.prevent="addTag"
               />
             </div>
           </div>
+          
           <div class="form-group">
-            <label>类型</label>
-            <select v-model="createForm.type">
+            <label class="form-label">类型</label>
+            <select v-model="createForm.type" class="form-select">
               <option v-for="item in typeOptions" :key="item.value" :value="item.value">
                 {{ item.label }}
               </option>
             </select>
           </div>
+          
           <div class="form-group">
-            <label>上传文件</label>
-            <div class="upload-box">
-              <input id="dataset-files" type="file" multiple @change="handleFileChange" />
-              <p>支持多文件上传，将文件拖拽或点击此处选择文件</p>
+            <label class="form-label">上传文件</label>
+            <div class="upload-area">
+              <input id="dataset-files" type="file" multiple @change="handleFileChange" class="upload-input" />
+              <div class="upload-content">
+                <icon-components name="upload" class="upload-icon" />
+                <p class="upload-text">支持多文件上传，将文件拖拽或点击此处选择文件</p>
+              </div>
             </div>
+            
             <ul v-if="selectedFiles.length" class="file-list">
-              <li v-for="file in selectedFiles" :key="file.name">
-                <IconComponents name="docs" class="file-icon" />
+              <li v-for="file in selectedFiles" :key="file.name" class="file-item">
+                <icon-components name="docs" class="file-icon" />
                 <span class="file-name">{{ file.name }}</span>
                 <span class="file-size">{{ formatSize(file.size) }}</span>
               </li>
             </ul>
           </div>
         </div>
+        
         <div class="modal-footer">
-          <button class="btn-secondary" type="button" @click="closeCreateDialog">取消</button>
-          <button class="btn-primary" type="button" :disabled="saving" @click="saveAndParse">
+          <button class="btn btn-secondary" type="button" @click="closeCreateDialog">取消</button>
+          <button class="btn btn-primary" type="button" :disabled="saving" @click="saveAndParse">
             {{ saving ? '保存中...' : '保存并解析' }}
           </button>
         </div>
       </div>
     </div>
 
-    <div v-if="detailVisible" class="detail-overlay">
-      <div class="detail-panel">
-        <div class="detail-header">
+    <!-- 数据集详情模态框 -->
+    <div v-if="detailVisible" class="modal-overlay">
+      <div class="modal-content large">
+        <div class="modal-header">
           <div>
-            <h2>{{ selectedDataset?.title || '数据集详情' }}</h2>
+            <h2 class="modal-title">{{ selectedDataset?.title || '数据集详情' }}</h2>
             <p v-if="selectedProgress" class="detail-progress-text">{{ selectedProgress.message }}</p>
           </div>
           <button class="modal-close" @click="closeDetail">×</button>
         </div>
-        <div class="detail-body">
-          <div v-if="detailLoading" class="detail-loading">
+        <div class="modal-body">
+          <div v-if="detailLoading" class="loading-state">
             <div class="loading-spinner"></div>
             <p>加载详情...</p>
           </div>
@@ -304,6 +345,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import IconComponents from '@/components/icons/IconComponents.vue'
+import SimpleIcon from '@/components/SimpleIcon.vue'
 import { confirmDialog } from '@/utils/confirm'
 import toast from '@/utils/toast'
 import { createDataset, fetchDatasetDetail, fetchDatasets, removeDataset } from '@/api/dataset'
@@ -430,6 +472,11 @@ async function loadDatasets() {
   } finally {
     loading.value = false
   }
+}
+
+function performSearch() {
+  currentPage.value = 1
+  loadDatasets()
 }
 
 function openCreateDialog() {
@@ -710,252 +757,296 @@ watch(
 </script>
 
 <style scoped>
+/* 页面基础样式 */
 .dataset-page {
-  padding: 24px;
-  background-color: #f9fafb;
   min-height: 100vh;
+  background: #ffffff;
+  padding: 24px;
 }
 
+/* 页面头部 */
 .page-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.header-left {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.header-content {
+  flex: 1;
 }
 
 .page-title {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 32px;
+  font-weight: 700;
   color: #111827;
-  margin: 0;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
 }
 
 .page-subtitle {
+  font-size: 16px;
   color: #6b7280;
   margin: 0;
+  line-height: 1.5;
 }
 
-.header-actions {
+/* 搜索区域 */
+.search-section {
+  margin-bottom: 32px;
+}
+
+.search-container {
+  max-width: 600px;
+}
+
+.nav-search {
   display: flex;
+  align-items: center;
   gap: 12px;
-}
-
-.btn-primary,
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s ease;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: #fff;
-}
-
-.btn-primary:hover {
-  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.25);
-}
-
-.btn-secondary {
-  background: #e0e7ff;
-  color: #4338ca;
-}
-
-.btn-secondary:hover {
-  background: #c7d2fe;
-}
-
-.btn-icon {
-  width: 18px;
-  height: 18px;
-}
-
-.filter-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-
-.search-box {
-  flex: 1;
-  min-width: 260px;
-  background: #fff;
-  border-radius: 12px;
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 10px 30px rgba(17, 24, 39, 0.04);
-}
-
-.search-icon {
-  width: 18px;
-  height: 18px;
-  color: #6b7280;
+  max-width: 400px;
 }
 
 .search-input {
   flex: 1;
-  border: none;
+  padding: 12px 16px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 16px;
+  background: #FFFFFF;
+  color: #1F2937;
   outline: none;
-  font-size: 14px;
-  color: #111827;
+  transition: border-color 0.2s;
 }
 
-.filter-controls {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+.search-input:focus {
+  border-color: #000000;
 }
 
-.filter-select {
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  color: #111827;
-  font-size: 14px;
+.search-input::placeholder {
+  color: #9CA3AF;
 }
 
-.dataset-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+.search-btn {
+  padding: 12px;
+  background: #000000;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-.dataset-card {
-  background: #fff;
-  border-radius: 18px;
-  padding: 20px;
-  box-shadow: 0 20px 40px rgba(17, 24, 39, 0.06);
+.search-btn:hover {
+  background: #1F2937;
+}
+
+.search-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* 内容区域 */
+.content-area {
+  min-height: 400px;
+}
+
+/* 加载状态 */
+.loading-state {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: #6b7280;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #111827;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  color: #d1d5db;
+  margin-bottom: 24px;
+}
+
+.empty-state h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.empty-state p {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0 0 24px 0;
+  max-width: 400px;
+}
+
+/* 数据集网格 */
+.dataset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+/* 数据集卡片 */
+.dataset-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .dataset-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 25px 50px rgba(99, 102, 241, 0.15);
-  border-color: rgba(99, 102, 241, 0.2);
+  border-color: #111827;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 16px;
 }
 
 .dataset-type {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
-  background: #eef2ff;
-  padding: 6px 12px;
-  border-radius: 999px;
-  color: #4338ca;
-  font-weight: 500;
 }
 
 .type-icon {
   width: 16px;
   height: 16px;
+  color: #6b7280;
+}
+
+.type-label {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
 }
 
 .dataset-status {
-  padding: 6px 12px;
-  border-radius: 999px;
+  padding: 4px 12px;
+  border-radius: 20px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.status-processing {
-  background: rgba(99, 102, 241, 0.12);
-  color: #4f46e5;
+.dataset-status.processing {
+  background: #f3f4f6;
+  color: #374151;
 }
 
-.status-ready {
-  background: rgba(16, 185, 129, 0.12);
-  color: #059669;
+.dataset-status.ready {
+  background: #111827;
+  color: #ffffff;
 }
 
-.status-failed {
-  background: rgba(248, 113, 113, 0.15);
+.dataset-status.failed {
+  background: #ef2f2;
   color: #dc2626;
+}
+
+.card-content {
+  flex: 1;
+  margin-bottom: 16px;
 }
 
 .dataset-name {
   font-size: 18px;
   font-weight: 600;
-  margin: 0 0 6px;
   color: #111827;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
 }
 
 .dataset-description {
-  color: #6b7280;
   font-size: 14px;
-  margin: 0 0 12px;
+  color: #6b7280;
+  margin: 0 0 16px 0;
   line-height: 1.5;
-  min-height: 42px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
+/* 进度条 */
 .dataset-progress {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .progress-track {
   flex: 1;
   height: 6px;
-  background: #e5e7eb;
-  border-radius: 999px;
+  background: #f3f4f6;
+  border-radius: 3px;
   overflow: hidden;
 }
 
 .progress-value {
   height: 100%;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  border-radius: 999px;
+  background: #111827;
+  border-radius: 3px;
   transition: width 0.3s ease;
 }
 
 .progress-text {
   font-size: 12px;
-  color: #4338ca;
-  font-weight: 500;
+  font-weight: 600;
+  color: #111827;
+  min-width: 40px;
 }
 
+/* 统计信息 */
 .dataset-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 12px;
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
 .stat-item {
-  background: #f9fafb;
-  border-radius: 12px;
-  padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -963,15 +1054,17 @@ watch(
 
 .stat-label {
   font-size: 12px;
-  color: #6b7280;
+  color: #9ca3af;
+  font-weight: 500;
 }
 
 .stat-value {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 14px;
   color: #111827;
+  font-weight: 600;
 }
 
+/* 标签 */
 .dataset-tags {
   display: flex;
   flex-wrap: wrap;
@@ -979,23 +1072,55 @@ watch(
 }
 
 .tag {
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #eef2ff;
-  color: #4338ca;
+  padding: 4px 8px;
+  background: #f3f4f6;
+  color: #374151;
+  border-radius: 6px;
   font-size: 12px;
+  font-weight: 500;
+}
+
+.tag.selected {
+  background-color: #eff6ff;
+  color: #3b82f6;
+  position: relative;
+  padding-right: 28px;
+}
+
+.tag-remove {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .card-footer {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
 }
 
 .dataset-meta {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.meta-item {
   font-size: 12px;
   color: #9ca3af;
 }
@@ -1006,339 +1131,376 @@ watch(
 }
 
 .action-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  padding: 8px;
   border: none;
-  background: #f3f4f6;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #4b5563;
-  cursor: pointer;
-  transition: background 0.2s ease;
 }
 
 .action-btn:hover {
-  background: #e5e7eb;
-}
-
-.action-btn.danger {
-  color: #dc2626;
-  background: rgba(248, 113, 113, 0.15);
-}
-
-.pagination {
-  margin-top: 32px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 16px;
-}
-
-.page-btn,
-.page-number {
-  padding: 8px 14px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  cursor: pointer;
-  color: #111827;
-}
-
-.page-number.active {
-  background: #4f46e5;
-  color: #fff;
-  border-color: transparent;
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin-top: 80px;
-}
-
-.loading-spinner {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 4px solid #e5e7eb;
-  border-top-color: #6366f1;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.empty-state {
-  margin-top: 80px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  text-align: center;
-}
-
-.empty-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 20px;
-  background: rgba(99, 102, 241, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-  padding: 24px;
-}
-
-.modal {
-  width: 100%;
-  max-width: 640px;
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.18);
-  display: flex;
-  flex-direction: column;
-  max-height: 90vh;
-}
-
-.modal-header,
-.modal-footer {
-  padding: 20px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.modal-body {
-  padding: 0 24px 24px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.modal-close {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: none;
   background: #f3f4f6;
-  cursor: pointer;
-  font-size: 16px;
-  color: #4b5563;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-group label {
-  font-weight: 500;
   color: #374151;
 }
 
-.form-group input,
-.form-group textarea,
-.form-group select {
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
+.action-btn.danger:hover {
+  background: #ef2f2;
+  color: #dc2626;
+}
+
+/* 分页 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 48px;
+}
+
+.pagination-button {
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #374151;
+  border-radius: 6px;
+  cursor: pointer;
   font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.pagination-button:hover:not(:disabled) {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.pagination-button.active {
+  background-color: #3b82f6;
+  border-color: #3B82F6;
+  color: #ffffff;
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-numbers {
+  display: flex;
+  gap: 4px;
+}
+
+/* 按钮样式 */
+.btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* 模态框 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background-color: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content.large {
+  max-width: 900px;
+}
+
+.modal-header {
+  padding: 24px 24px 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 600;
   color: #111827;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.modal-body {
+  padding: 0 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 24px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* 表单样式 */
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: #ffffff;
   transition: border-color 0.2s ease;
 }
 
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-  border-color: #6366f1;
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* 标签编辑器 */
 .tag-editor {
-  background: #f9fafb;
-  border-radius: 12px;
-  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px;
+  background-color: #ffffff;
+  min-height: 48px;
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
+}
+
+.tag-editor:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .selected-tags {
   display: flex;
-  gap: 8px;
   flex-wrap: wrap;
+  gap: 8px;
 }
 
-.tag.selected {
-  background: rgba(99, 102, 241, 0.15);
-  color: #4338ca;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.tag-remove {
+.tag-input {
   border: none;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
+  outline: none;
+  flex: 1;
+  min-width: 120px;
+  padding: 4px 8px;
   font-size: 14px;
 }
 
-.upload-box {
-  border: 2px dashed #c7d2fe;
-  border-radius: 12px;
-  padding: 24px;
-  text-align: center;
-  color: #6366f1;
-  background: rgba(99, 102, 241, 0.05);
+.tag-input:disabled {
+  background-color: #f9fafb;
+  color: #9ca3af;
 }
 
-.upload-box input[type='file'] {
-  display: block;
-  margin: 0 auto 12px;
+/* 文件上传 */
+.upload-area {
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 32px;
+  text-align: center;
+  background-color: #fafafa;
+  transition: all 0.2s ease;
+  position: relative;
+  cursor: pointer;
+}
+
+.upload-area:hover {
+  border-color: #3b82f6;
+  background-color: #f8faff;
+}
+
+.upload-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.upload-content {
+  pointer-events: none;
+}
+
+.upload-icon {
+  width: 48px;
+  height: 48px;
+  color: #9ca3af;
+  margin-bottom: 16px;
+}
+
+.upload-text {
+  color: #6b7280;
+  font-size: 16px;
+  margin: 0;
 }
 
 .file-list {
-  margin-top: 12px;
   list-style: none;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  margin: 16px 0 0 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #ffffff;
 }
 
-.file-list li {
+.file-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: #f3f4f6;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.file-item:last-child {
+  border-bottom: none;
 }
 
 .file-icon {
-  width: 18px;
-  height: 18px;
-  margin-right: 8px;
+  width: 20px;
+  height: 20px;
+  color: #6b7280;
 }
 
 .file-name {
   flex: 1;
+  font-size: 14px;
   color: #374151;
 }
 
 .file-size {
-  color: #6b7280;
   font-size: 12px;
-  margin-left: 12px;
+  color: #9ca3af;
 }
 
-.detail-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.4);
-  display: flex;
-  justify-content: flex-end;
-  z-index: 60;
-}
-
-.detail-panel {
-  width: min(520px, 100%);
-  background: #fff;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  border-radius: 20px 0 0 20px;
-  box-shadow: -20px 0 40px rgba(15, 23, 42, 0.2);
-}
-
-.detail-header {
-  padding: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.detail-header h2 {
-  margin: 0;
-  font-size: 20px;
-  color: #111827;
-}
-
-.detail-progress-text {
-  margin: 4px 0 0;
-  color: #6366f1;
-  font-size: 13px;
-}
-
-.detail-body {
-  padding: 24px;
-  overflow-y: auto;
-}
-
-.detail-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin-top: 120px;
+/* 详情内容 */
+.detail-content {
+  padding: 0;
 }
 
 .detail-section {
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
 .detail-section h3 {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: #111827;
-  margin-bottom: 12px;
-}
-
-.detail-description {
-  color: #4b5563;
-  line-height: 1.6;
-}
-
-.detail-tags {
-  margin-top: 12px;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  margin: 0 0 16px 0;
 }
 
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
 .info-item {
-  background: #f9fafb;
-  border-radius: 12px;
-  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -1346,19 +1508,47 @@ watch(
 
 .info-label {
   font-size: 12px;
-  color: #6b7280;
+  color: #9ca3af;
+  font-weight: 500;
 }
 
 .info-value {
+  font-size: 14px;
   font-weight: 600;
   color: #111827;
+}
+
+.detail-description {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+}
+
+.detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.detail-progress-text {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 4px 0 0 0;
+}
+
+.empty-files {
+  text-align: center;
+  color: #9ca3af;
+  font-style: italic;
+  padding: 32px;
 }
 
 .file-table {
   width: 100%;
   border-collapse: collapse;
-  background: #f9fafb;
-  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -1366,50 +1556,152 @@ watch(
 .file-table td {
   padding: 12px 16px;
   text-align: left;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.file-table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #374151;
   font-size: 14px;
 }
 
-.file-table tbody tr:nth-child(even) {
-  background: rgba(99, 102, 241, 0.05);
-}
-
-.file-table .actions {
-  text-align: right;
-}
-
-.text-btn {
-  border: none;
-  background: transparent;
-  color: #6366f1;
-  cursor: pointer;
-}
-
-.empty-files {
-  padding: 16px;
-  text-align: center;
-  border-radius: 12px;
-  background: #f3f4f6;
+.file-table td {
+  font-size: 14px;
   color: #6b7280;
 }
 
+.file-table tr:last-child td {
+  border-bottom: none;
+}
+
+.file-table .actions {
+  width: 100px;
+  text-align: center;
+}
+
+.text-btn {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.text-btn:hover {
+  background-color: #eff6ff;
+}
+
+/* 响应式设计 */
 @media (max-width: 768px) {
+  .main-content {
+    padding: 16px;
+  }
+  
   .page-header {
     flex-direction: column;
-    align-items: flex-start;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .search-filters {
+    flex-direction: column;
     gap: 16px;
   }
-
-  .header-actions {
-    width: 100%;
-    justify-content: flex-start;
+  
+  .search-box {
+    min-width: auto;
   }
-
-  .dataset-grid {
+  
+  .filter-group {
+    justify-content: stretch;
+  }
+  
+  .filter-select {
+    flex: 1;
+  }
+  
+  .datasets-grid {
     grid-template-columns: 1fr;
   }
-
+  
+  .dataset-stats {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .nav-links {
+    gap: 16px;
+  }
+  
+  .nav-link {
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+  
+  .modal-content {
+    margin: 10px;
+    max-width: none;
+  }
+  
   .info-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    padding: 0 16px;
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 64px;
+  }
+  
+  .nav-links {
+    order: 2;
+    width: 100%;
+    justify-content: space-around;
+    padding-top: 8px;
+  }
+  
+  .nav-actions {
+    order: 1;
+  }
+  
+  .page-header h1 {
+    font-size: 24px;
+  }
+  
+  .dataset-card {
+    padding: 16px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .modal-header {
+    padding: 16px 16px 0 16px;
+  }
+  
+  .modal-body {
+    padding: 0 16px;
+  }
+  
+  .modal-footer {
+    padding: 16px;
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>

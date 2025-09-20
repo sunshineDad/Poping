@@ -1,478 +1,333 @@
+/**
+ * [文件概览]
+ * - 目的: 智能体状态管理，使用统一AI接口服务
+ * - 数据流: 组件 → store → aiService → 后端API
+ * - 核心数据: agents, sessions, messages, currentAgent
+ * - 关系: @/services/aiService.ts → AI接口调用, @/components/ChatInterface.vue → UI交互
+ */
+
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type {
-  Agent,
-  AgentCreateRequest,
-  ChatSession,
-  ChatMessage,
-  ApiResponse,
-  AgentListResponse,
-  ChatSessionListResponse,
-  PlaygroundState
-} from '@/types/agent'
+import { aiService } from '@/services/aiService'
+import type { AISession, AIMessage } from '@/types/ai'
+
+// 智能体信息接口
+interface Agent {
+  id: number
+  name: string
+  description: string
+  avatar?: string
+  category: string
+  isActive: boolean
+  capabilities: string[]
+  sessionId?: string  // 当前会话ID
+}
 
 export const useAgentStore = defineStore('agent', () => {
   // 状态
   const agents = ref<Agent[]>([])
   const currentAgent = ref<Agent | null>(null)
-  const sessions = ref<ChatSession[]>([])
-  const currentSession = ref<ChatSession | null>(null)
-  const messages = ref<ChatMessage[]>([])
+  const sessions = ref<AISession[]>([])
+  const currentSession = ref<AISession | null>(null)
+  const messages = ref<AIMessage[]>([])
   const isLoading = ref(false)
   const isTyping = ref(false)
   const error = ref<string | null>(null)
 
   // 计算属性
   const activeAgents = computed(() => 
-    agents.value.filter(agent => agent.status === 'active')
+    agents.value.filter(agent => agent.isActive)
   )
 
   const currentSessionMessages = computed(() => 
     currentSession.value 
-      ? messages.value.filter(msg => msg.sessionId === currentSession.value!.id)
+      ? messages.value.filter(msg => msg.id.includes(currentSession.value!.session_id))
       : []
   )
 
-  const playgroundState = computed<PlaygroundState>(() => ({
-    currentAgent: currentAgent.value || undefined,
-    currentSession: currentSession.value || undefined,
-    messages: currentSessionMessages.value,
-    isLoading: isLoading.value,
-    isTyping: isTyping.value
-  }))
-
   // Actions
-  
+
   /**
-   * 获取智能体列表
+   * [函数: fetchAgents]
+   * - 输入: 无
+   * - 输出: Promise<void>
+   * - 角色: 获取智能体列表（模拟数据）
+   * - 逻辑: 1. 设置加载状态 2. 返回模拟智能体数据 3. 清除错误状态
    */
-  async function fetchAgents(page = 1, size = 20): Promise<AgentListResponse> {
+  async function fetchAgents(): Promise<void> {
     try {
       isLoading.value = true
       error.value = null
       
-      const response = await fetch(`/api/agents?page=${page}&size=${size}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const result: ApiResponse<AgentListResponse> = await response.json()
-      
-      if (result.code === 200) {
-        agents.value = result.data.agents
-        return result.data
-      } else {
-        throw new Error(result.message || '获取智能体列表失败')
-      }
-    } catch (err) {
-      console.warn('API调用失败，使用模拟数据:', err)
-      
-      // 提供模拟数据以便开发和测试
-      const mockAgents: Agent[] = [
+      // 模拟智能体数据
+      agents.value = [
         {
-          id: 'mock-1',
-          name: 'AI助手',
-          description: '通用AI助手，可以帮助您解答各种问题',
-          systemPrompt: '你是一个有用的AI助手。',
-          config: {
-            model: 'gpt-4',
-            temperature: 0.7,
-            maxTokens: 2000,
-            mcpConfig: {
-              enabled: false,
-              tools: []
-            },
-            datasetConfig: {
-              enabled: false,
-              datasetIds: []
-            },
-            memoryConfig: {
-              enabled: false,
-              type: 'short_term',
-              maxMessages: 50
-            }
-          },
-          status: 'active' as const,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          memoryEnabled: true,
-          isPublic: true,
-          usageCount: 0
+          id: 1,
+          name: 'Claude Assistant',
+          description: '通用AI助手，擅长对话、分析和创作',
+          avatar: '🤖',
+          category: '通用助手',
+          isActive: true,
+          capabilities: ['对话', '分析', '创作', '编程']
         },
         {
-          id: 'mock-2',
-          name: '代码助手',
-          description: '专门用于编程和代码相关任务的AI助手',
-          systemPrompt: '你是一个专业的编程助手。',
-          config: {
-            model: 'gpt-3.5-turbo',
-            temperature: 0.1,
-            maxTokens: 4000,
-            mcpConfig: {
-              enabled: false,
-              tools: []
-            },
-            datasetConfig: {
-              enabled: false,
-              datasetIds: []
-            },
-            memoryConfig: {
-              enabled: false,
-              type: 'short_term',
-              maxMessages: 50
-            }
-          },
-          status: 'active' as const,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          memoryEnabled: false,
-          isPublic: true,
-          usageCount: 0
+          id: 2,
+          name: 'Code Expert',
+          description: '专业编程助手，精通多种编程语言',
+          avatar: '💻',
+          category: '编程助手',
+          isActive: true,
+          capabilities: ['编程', '调试', '代码审查', '架构设计']
+        },
+        {
+          id: 3,
+          name: 'Data Analyst',
+          description: '数据分析专家，擅长数据处理和可视化',
+          avatar: '📊',
+          category: '数据分析',
+          isActive: true,
+          capabilities: ['数据分析', '可视化', '统计', '机器学习']
         }
       ]
-      
-      agents.value = mockAgents
-      error.value = null // 清除错误状态，使用模拟数据
-      
-      return {
-        agents: mockAgents,
-        total: mockAgents.length,
-        page: 1,
-        size: 20
-      }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : '获取智能体列表失败'
     } finally {
       isLoading.value = false
     }
   }
 
   /**
-   * 创建智能体
+   * [函数: selectAgent]
+   * - 输入: Agent对象
+   * - 输出: Promise<void>
+   * - 角色: 选择智能体并创建会话
+   * - 逻辑: 1. 设置当前智能体 2. 创建新会话 3. 关联会话ID
    */
-  async function createAgent(agentData: AgentCreateRequest): Promise<Agent> {
+  async function selectAgent(agent: Agent): Promise<void> {
     try {
       isLoading.value = true
       error.value = null
       
-      const response = await fetch('/api/agents', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-          'User-Id': localStorage.getItem('userId') || ''
-        },
-        body: JSON.stringify(agentData)
-      })
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const result: ApiResponse<Agent> = await response.json()
-      
-      if (result.code === 200) {
-        agents.value.unshift(result.data)
-        return result.data
-      } else {
-        throw new Error(result.message || '创建智能体失败')
-      }
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : '创建智能体失败'
-      throw err
-    } finally {
-      isLoading.value = false
-    }
-  }
-
-  /**
-   * 根据ID获取智能体
-   */
-  async function fetchAgentById(id: string): Promise<Agent | null> {
-    try {
-      isLoading.value = true
-      error.value = null
-      
-      const response = await fetch(`/api/agents/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const result: ApiResponse<Agent> = await response.json()
-      
-      if (result.code === 200) {
-        return result.data
-      } else {
-        throw new Error(result.message || '获取智能体失败')
-      }
-    } catch (err) {
-      console.warn('API调用失败，从本地数据查找:', err)
-      return agents.value.find(agent => agent.id === id) || null
-    } finally {
-      isLoading.value = false
-    }
-  }
-
-  /**
-   * 设置当前活跃的智能体
-   */
-  function setActiveAgent(agentId: string) {
-    const agent = agents.value.find(a => a.id === agentId)
-    if (agent) {
       currentAgent.value = agent
-    }
-  }
-
-  /**
-   * 获取会话列表
-   */
-  async function fetchSessions(agentId: string): Promise<ChatSessionListResponse> {
-    try {
-      isLoading.value = true
-      error.value = null
       
-      const response = await fetch(`/api/agents/${agentId}/sessions`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
+      // 创建新的AI会话
+      const session = await aiService.createSession({
+        metadata: {
+          title: `与 ${agent.name} 的对话`,
+          agentId: agent.id,
+          agentName: agent.name
         }
       })
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const result: ApiResponse<ChatSessionListResponse> = await response.json()
-      
-      if (result.code === 200) {
-        sessions.value = result.data.sessions
-        return result.data
-      } else {
-        throw new Error(result.message || '获取会话列表失败')
-      }
-    } catch (err) {
-      console.warn('API调用失败，使用模拟数据:', err)
-      
-      // 提供模拟会话数据
-      const mockSessions: ChatSession[] = [
-        {
-          id: 'session-1',
-          agentId: 1,
-          userId: 1,
-          title: '新对话',
-          status: 'active',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          messageCount: 0
-        }
-      ]
-      
-      sessions.value = mockSessions
-      error.value = null
-      
-      return {
-        sessions: mockSessions,
-        total: mockSessions.length
-      }
-    } finally {
-      isLoading.value = false
-    }
-  }
-
-  /**
-   * 创建新会话
-   */
-  async function createSession(agentId: string, title?: string): Promise<ChatSession> {
-    try {
-      isLoading.value = true
-      error.value = null
-      
-      const response = await fetch(`/api/agents/${agentId}/sessions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ title: title || '新对话' })
-      })
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const result: ApiResponse<ChatSession> = await response.json()
-      
-      if (result.code === 200) {
-        sessions.value.unshift(result.data)
-        currentSession.value = result.data
-        return result.data
-      } else {
-        throw new Error(result.message || '创建会话失败')
-      }
-    } catch (err) {
-      console.warn('API调用失败，创建模拟会话:', err)
-      
-      const agent = agents.value.find(a => a.id === agentId)
-      
-      // 创建模拟会话
-      const newSession: ChatSession = {
-        id: `session-${Date.now()}`,
-        agentId: Number(agentId),
-        userId: 1,
-        title: title || `新对话 ${sessions.value.length + 1}`,
-        status: 'active',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        messageCount: 0,
-        agentName: agent?.name
-      }
-      
-      sessions.value.unshift(newSession)
-      currentSession.value = newSession
-      error.value = null
-      
-      return newSession
-    } finally {
-      isLoading.value = false
-    }
-  }
-
-  /**
-   * 设置当前会话
-   */
-  function setCurrentSession(sessionId: string) {
-    const session = sessions.value.find(s => s.id === sessionId)
-    if (session) {
+      // 更新智能体的会话ID
+      agent.sessionId = session.session_id
       currentSession.value = session
+      
+      // 清空当前消息
+      messages.value = []
+      
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : '选择智能体失败'
+    } finally {
+      isLoading.value = false
     }
   }
 
   /**
-   * 发送消息
+   * [函数: fetchSessions]
+   * - 输入: 无
+   * - 输出: Promise<void>
+   * - 角色: 获取会话列表
+   * - 逻辑: 1. 调用AI服务获取会话 2. 更新会话列表 3. 处理错误
+   */
+  async function fetchSessions(): Promise<void> {
+    try {
+      isLoading.value = true
+      error.value = null
+      
+      const sessionList = await aiService.listSessions()
+      sessions.value = sessionList
+      
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : '获取会话列表失败'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * [函数: loadSession]
+   * - 输入: 会话ID
+   * - 输出: Promise<void>
+   * - 角色: 加载指定会话及其消息
+   * - 逻辑: 1. 获取会话信息 2. 加载会话消息 3. 设置当前会话
+   */
+  async function loadSession(sessionId: string): Promise<void> {
+    try {
+      isLoading.value = true
+      error.value = null
+      
+      // 获取会话信息
+      const session = await aiService.getSession(sessionId)
+      currentSession.value = session
+      
+      // 加载会话消息（暂时使用空数组，因为API规范中没有获取历史消息的接口）
+      messages.value = []
+      
+      // 根据会话元数据找到对应的智能体
+      if (session.metadata?.agentId) {
+        const agent = agents.value.find(a => a.id === session.metadata.agentId)
+        if (agent) {
+          currentAgent.value = agent
+          agent.sessionId = sessionId
+        }
+      }
+      
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : '加载会话失败'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * [函数: sendMessage]
+   * - 输入: 消息内容
+   * - 输出: Promise<void>
+   * - 角色: 发送消息并处理AI响应
+   * - 逻辑: 1. 添加用户消息 2. 调用AI查询 3. 处理流式响应 4. 添加AI回复
    */
   async function sendMessage(content: string): Promise<void> {
-    if (!currentSession.value || !currentAgent.value) {
-      throw new Error('没有选择智能体或会话')
+    if (!currentSession.value) {
+      throw new Error('没有活动会话')
     }
 
     try {
       isTyping.value = true
       error.value = null
-
+      
       // 添加用户消息
-      const userMessage: ChatMessage = {
-        id: `msg-${Date.now()}`,
-        sessionId: currentSession.value.id,
+      const userMessage: AIMessage = {
+        id: `user-${Date.now()}`,
         role: 'user',
         content,
-        createdAt: new Date().toISOString()
+        timestamp: new Date().toISOString()
       }
-      
       messages.value.push(userMessage)
-
-      const response = await fetch(`/api/sessions/${currentSession.value.id}/messages`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ content })
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const result: ApiResponse<ChatMessage> = await response.json()
-
-      if (result.code === 200) {
-        messages.value.push(result.data)
-      } else {
-        throw new Error(result.message || '发送消息失败')
-      }
-    } catch (err) {
-      console.warn('API调用失败，使用模拟响应:', err)
       
-      // 模拟AI响应
-      const aiMessage: ChatMessage = {
-        id: `msg-${Date.now() + 1}`,
-        sessionId: currentSession.value.id,
+      // 准备AI回复消息
+      const assistantMessage: AIMessage = {
+        id: `assistant-${Date.now()}`,
         role: 'assistant',
-        content: '这是一个模拟的AI响应。实际部署时，这里会是真实的AI回复。',
-        createdAt: new Date().toISOString()
+        content: '',
+        timestamp: new Date().toISOString()
       }
+      messages.value.push(assistantMessage)
       
-      // 模拟打字延迟
-      setTimeout(() => {
-        messages.value.push(aiMessage)
-        isTyping.value = false
-      }, 1000)
-      
-      error.value = null
-      return
-    } finally {
-      if (!error.value) {
-        isTyping.value = false
-      }
-    }
-  }
-
-  /**
-   * 获取会话消息
-   */
-  async function fetchMessages(sessionId: string): Promise<void> {
-    try {
-      isLoading.value = true
-      error.value = null
-      
-      const response = await fetch(`/api/sessions/${sessionId}/messages`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
+      // 发送查询并处理流式响应
+      await aiService.queryStream(currentSession.value.session_id, {
+        query: content
+      }, (event) => {
+        switch (event.type) {
+          case 'message':
+            if (event.data.role === 'assistant') {
+              assistantMessage.content += event.data.content
+            }
+            break
+          case 'error':
+            error.value = event.data.error
+            break
         }
       })
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const result: ApiResponse<ChatMessage[]> = await response.json()
-      
-      if (result.code === 200) {
-        messages.value = result.data
-      } else {
-        throw new Error(result.message || '获取消息失败')
-      }
     } catch (err) {
-      console.warn('API调用失败，清空消息列表:', err)
-      messages.value = []
-      error.value = null
+      error.value = err instanceof Error ? err.message : '发送消息失败'
+      // 移除失败的消息
+      messages.value = messages.value.filter(msg => !msg.id.startsWith('assistant-'))
     } finally {
-      isLoading.value = false
+      isTyping.value = false
     }
   }
 
   /**
-   * 清除错误状态
+   * [函数: updateSessionTitle]
+   * - 输入: 会话ID, 新标题
+   * - 输出: Promise<void>
+   * - 角色: 更新会话标题
+   * - 逻辑: 1. 调用AI服务更新标题 2. 更新本地会话数据
    */
-  function clearError() {
+  async function updateSessionTitle(sessionId: string, title: string): Promise<void> {
+    try {
+      error.value = null
+      
+      await aiService.updateSessionTitle(sessionId, title)
+      
+      // 更新本地会话数据
+      const session = sessions.value.find(s => s.session_id === sessionId)
+      if (session) {
+        session.title = title
+        session.metadata = { ...session.metadata, title }
+      }
+      
+      if (currentSession.value?.session_id === sessionId) {
+        currentSession.value.title = title
+        currentSession.value.metadata = { ...currentSession.value.metadata, title }
+      }
+      
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : '更新会话标题失败'
+    }
+  }
+
+  /**
+   * [函数: deleteSession]
+   * - 输入: 会话ID
+   * - 输出: Promise<void>
+   * - 角色: 删除会话
+   * - 逻辑: 1. 调用AI服务删除会话 2. 更新本地会话列表 3. 清理当前会话
+   */
+  async function deleteSession(sessionId: string): Promise<void> {
+    try {
+      error.value = null
+      
+      await aiService.deleteSession(sessionId)
+      
+      // 从本地列表中移除
+      sessions.value = sessions.value.filter(s => s.session_id !== sessionId)
+      
+      // 如果删除的是当前会话，清理状态
+      if (currentSession.value?.session_id === sessionId) {
+        currentSession.value = null
+        messages.value = []
+        if (currentAgent.value) {
+          currentAgent.value.sessionId = undefined
+        }
+      }
+      
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : '删除会话失败'
+    }
+  }
+
+  /**
+   * [函数: clearError]
+   * - 输入: 无
+   * - 输出: void
+   * - 角色: 清除错误状态
+   * - 逻辑: 1. 重置错误状态
+   */
+  function clearError(): void {
     error.value = null
   }
 
   /**
-   * 重置状态
+   * [函数: reset]
+   * - 输入: 无
+   * - 输出: void
+   * - 角色: 重置所有状态
+   * - 逻辑: 1. 清空所有状态数据
    */
-  function reset() {
+  function reset(): void {
     agents.value = []
     currentAgent.value = null
     sessions.value = []
@@ -497,18 +352,15 @@ export const useAgentStore = defineStore('agent', () => {
     // 计算属性
     activeAgents,
     currentSessionMessages,
-    playgroundState,
     
     // 方法
     fetchAgents,
-    createAgent,
-    fetchAgentById,
-    setActiveAgent,
+    selectAgent,
     fetchSessions,
-    createSession,
-    setCurrentSession,
+    loadSession,
     sendMessage,
-    fetchMessages,
+    updateSessionTitle,
+    deleteSession,
     clearError,
     reset
   }

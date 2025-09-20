@@ -20,21 +20,5 @@
   /* 可以在这里添加激活链接的样式 */
 }
 
-/* 滚动条样式 */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
+/* 滚动条样式已在全局style.css中定义 */
 </style>

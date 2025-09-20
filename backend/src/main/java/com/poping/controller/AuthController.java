@@ -8,10 +8,13 @@ import com.poping.util.JwtUtil;
 // Swagger imports removed
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * [文件概览]
@@ -21,7 +24,7 @@ import javax.validation.Valid;
  * - 关系: 接收前端请求，调用UserService处理业务逻辑
  */
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/auth")
 // @Api(tags = "用户认证管理") - Swagger annotation removed
 @CrossOrigin(origins = "*")
 public class AuthController {
@@ -76,10 +79,34 @@ public class AuthController {
      * - 角色: 处理用户登录请求
      * - 逻辑: 1. 验证登录凭据 2. 生成JWT令牌 3. 返回认证信息
      */
+    @PostMapping("/generate-hash")
+    public ResponseEntity<Map<String, Object>> generateHash(@RequestBody Map<String, String> request) {
+        try {
+            String password = request.get("password");
+            String hash = userService.generatePasswordHash(password);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("hash", hash);
+            response.put("timestamp", System.currentTimeMillis());
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            response.put("timestamp", System.currentTimeMillis());
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
     @PostMapping("/login")
     // @ApiOperation("用户登录") - Swagger annotation removed
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody UserLoginRequest request) {
         try {
+            System.out.println("DEBUG: Login attempt for email: " + request.getEmail());
+            
             // 认证用户并生成访问令牌
             String accessToken = userService.authenticateUser(request.getEmail(), request.getPassword());
             
@@ -99,6 +126,9 @@ public class AuthController {
             return ResponseEntity.ok(ApiResponse.success("登录成功", authResponse));
             
         } catch (Exception e) {
+            System.out.println("DEBUG: Login failed with exception: " + e.getClass().getSimpleName());
+            System.out.println("DEBUG: Exception message: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
     }

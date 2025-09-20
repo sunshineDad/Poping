@@ -1,140 +1,178 @@
 <template>
-  <div class="mcp-market-page">
-    <!-- 顶部导航栏 -->
-    <div class="top-navigation">
-      <div class="nav-header">
-        <h1 class="nav-title">MCP 工具市场</h1>
-        <p class="nav-subtitle">发现和安装强大的 MCP 工具，扩展您的智能体能力</p>
+  <div class="market-page">
+    <!-- 导航栏 -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="nav-left">
+          <router-link to="/" class="nav-link">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            首页
+          </router-link>
+          <router-link to="/profile" class="nav-link">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            个人中心
+          </router-link>
+          <router-link to="/playground" class="nav-link">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            Playground
+          </router-link>
+        </div>
       </div>
-      <div class="nav-search">
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="搜索 MCP 工具..."
-          class="search-input"
-        />
-        <button class="search-btn">
-          <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </button>
-      </div>
-    </div>
+    </nav>
 
-    <!-- 主要内容区域 -->
-    <div class="main-content">
-      <!-- MCP工具内容 -->
-      <div class="mcp-content">
-        <div v-if="isLoading" class="loading-state">
-          <div class="loading-spinner"></div>
-          <p>正在加载 MCP 工具...</p>
+    <!-- 主内容区域 -->
+    <div class="main-container">
+      <!-- 页面头部 -->
+      <div class="page-header">
+        <div class="header-content">
+          <h1 class="page-title">MCP 工具市场</h1>
+          <p class="page-subtitle">发现和安装强大的 MCP 工具，扩展您的智能体能力</p>
         </div>
         
-        <div v-else-if="filteredMcpTools.length === 0" class="empty-state">
-          <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2M4 13h2m13-8V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v1M7 8h10" />
-          </svg>
-          <h3 class="empty-title">未找到匹配的 MCP 工具</h3>
-          <p class="empty-description">尝试调整搜索条件或浏览其他分类</p>
-        </div>
-
-        <div v-else class="mcp-grid">
-          <div
-            v-for="tool in filteredMcpTools"
-            :key="tool.id"
-            class="mcp-card"
-            @click="viewDetails(tool)"
-          >
-            <div class="mcp-header">
-              <div class="mcp-icon">
-                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                </svg>
-              </div>
-              <div class="mcp-info">
-                <h3 class="mcp-name">{{ tool.name }}</h3>
-                <p class="mcp-provider">{{ tool.provider }}</p>
-              </div>
-              <div class="mcp-status">
-                <span :class="['status-badge', tool.status]" v-if="tool.status">{{ tool.statusText || tool.status }}</span>
-              </div>
-            </div>
-
-            <div class="mcp-content-body">
-              <p class="mcp-description">{{ tool.description }}</p>
-              
-              <div class="mcp-tags">
-                <span v-for="tag in tool.tags" :key="tag" class="tag">{{ tag }}</span>
-              </div>
-
-              <div class="mcp-stats">
-                <div class="stat">
-                  <span class="stat-label">使用量</span>
-                  <span class="stat-value">{{ formatNumber(tool.usage) }}</span>
-                </div>
-                <div class="stat">
-                  <span class="stat-label">评分</span>
-                  <span class="stat-value">{{ tool.rating }}</span>
-                </div>
-                <div class="stat">
-                  <span class="stat-label">版本</span>
-                  <span class="stat-value">{{ tool.version }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="mcp-actions" @click.stop>
-              <button
-                :disabled="tool.status === 'installing'"
-                class="install-btn"
-                @click="installMcpTool(tool)"
-                v-if="tool.status"
-              >
-                {{ tool.status === 'installed' ? '已安装' : tool.status === 'installing' ? '安装中...' : '安装' }}
-              </button>
-              <button class="details-btn" @click="viewDetails(tool)">详情</button>
-            </div>
+        <!-- 搜索区域 -->
+        <div class="search-section">
+          <div class="search-container">
+            <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="搜索 MCP 工具..."
+              class="search-input"
+            />
           </div>
         </div>
       </div>
 
-      <!-- 右侧边栏 -->
-      <div class="sidebar">
-        <div class="sidebar-header">
-          <h2 class="sidebar-title">分类</h2>
-        </div>
-        
-        <div class="category-tree">
-          <div v-for="category in categories" :key="category.id" class="category-node">
-            <div
-              class="category-item"
-              :class="{ active: selectedCategory === category.id }"
-              @click="toggleCategory(category)"
-            >
-              <svg
-                v-if="category.children && category.children.length > 0"
-                class="expand-icon"
-                :class="{ expanded: category.expanded }"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-              <span class="category-name">{{ category.name }}</span>
-              <span class="category-count">{{ category.count }}</span>
-            </div>
-            
-            <div v-if="category.expanded && category.children" class="category-children">
+      <!-- 内容区域 -->
+      <div class="content-layout">
+        <!-- 左侧分类栏 -->
+        <div class="sidebar">
+          <div class="sidebar-header">
+            <h3 class="sidebar-title">分类</h3>
+          </div>
+          
+          <div class="category-list">
+            <div v-for="category in categories" :key="category.id" class="category-group">
               <div
-                v-for="child in category.children"
-                :key="child.id"
-                class="category-child"
-                :class="{ active: selectedCategory === child.id }"
-                @click="selectCategory(child.id)"
+                class="category-item"
+                :class="{ active: selectedCategory === category.id }"
+                @click="toggleCategory(category)"
               >
-                <span class="child-name">{{ child.name }}</span>
-                <span class="child-count">{{ child.count }}</span>
+                <div class="category-content">
+                  <svg
+                    v-if="category.children && category.children.length > 0"
+                    class="expand-icon"
+                    :class="{ expanded: category.expanded }"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                  <span class="category-name">{{ category.name }}</span>
+                </div>
+                <span class="category-count">{{ category.count }}</span>
+              </div>
+              
+              <div v-if="category.expanded && category.children" class="category-children">
+                <div
+                  v-for="child in category.children"
+                  :key="child.id"
+                  class="category-child"
+                  :class="{ active: selectedCategory === child.id }"
+                  @click="selectCategory(child.id)"
+                >
+                  <span class="child-name">{{ child.name }}</span>
+                  <span class="child-count">{{ child.count }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 主内容区域 -->
+        <div class="main-content">
+          <!-- 加载状态 -->
+          <div v-if="isLoading" class="loading-state">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">正在加载 MCP 工具...</p>
+          </div>
+          
+          <!-- 空状态 -->
+          <div v-else-if="filteredMcpTools.length === 0" class="empty-state">
+            <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2M4 13h2m13-8V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v1M7 8h10" />
+            </svg>
+            <h3 class="empty-title">未找到匹配的 MCP 工具</h3>
+            <p class="empty-description">尝试调整搜索条件或浏览其他分类</p>
+          </div>
+
+          <!-- 工具网格 -->
+          <div v-else class="tools-grid">
+            <div
+              v-for="tool in filteredMcpTools"
+              :key="tool.id"
+              class="tool-card"
+              @click="viewDetails(tool)"
+            >
+              <div class="tool-header">
+                <div class="tool-icon">
+                  <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                  </svg>
+                </div>
+                <div class="tool-info">
+                  <h3 class="tool-name">{{ tool.name }}</h3>
+                  <p class="tool-provider">{{ tool.provider }}</p>
+                </div>
+                <div class="tool-status">
+                  <span :class="['status-badge', tool.status]" v-if="tool.status">
+                    {{ tool.statusText || tool.status }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="tool-body">
+                <p class="tool-description">{{ tool.description }}</p>
+                
+                <div class="tool-tags">
+                  <span v-for="tag in tool.tags" :key="tag" class="tag">{{ tag }}</span>
+                </div>
+
+                <div class="tool-stats">
+                  <div class="stat">
+                    <span class="stat-label">使用量</span>
+                    <span class="stat-value">{{ formatNumber(tool.usage) }}</span>
+                  </div>
+                  <div class="stat">
+                    <span class="stat-label">评分</span>
+                    <span class="stat-value">{{ tool.rating }}</span>
+                  </div>
+                  <div class="stat">
+                    <span class="stat-label">版本</span>
+                    <span class="stat-value">{{ tool.version }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tool-actions" @click.stop>
+                <button
+                  :disabled="tool.status === 'installing'"
+                  class="btn btn-primary"
+                  @click="installMcpTool(tool)"
+                  v-if="tool.status"
+                >
+                  {{ tool.status === 'installed' ? '已安装' : tool.status === 'installing' ? '安装中...' : '安装' }}
+                </button>
+                <button class="btn btn-secondary" @click="viewDetails(tool)">详情</button>
               </div>
             </div>
           </div>
@@ -441,50 +479,125 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 黑白主题样式 */
-.mcp-market-page {
+/* 页面容器 */
+.market-page {
   min-height: 100vh;
   background: #FFFFFF;
   color: #1F2937;
 }
 
-/* 顶部导航栏 */
-.top-navigation {
+/* 导航栏 */
+.navbar {
   background: #FFFFFF;
   border-bottom: 1px solid #E5E7EB;
-  padding: 24px 32px;
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  height: 64px;
 }
 
-.nav-header {
-  flex: 1;
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
 }
 
-.nav-title {
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  color: #4B5563;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.nav-link:hover {
+  color: #1F2937;
+  background: #F9FAFB;
+}
+
+.nav-link.router-link-active {
+  color: #1F2937;
+  background: #F3F4F6;
+}
+
+.nav-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* 主容器 */
+.main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* 页面头部 */
+.page-header {
+  padding: 32px 0;
+  border-bottom: 1px solid #E5E7EB;
+  margin-bottom: 32px;
+}
+
+.header-content {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.page-title {
   font-size: 32px;
   font-weight: 700;
-  color: #000000;
+  color: #1F2937;
   margin: 0 0 8px 0;
 }
 
-.nav-subtitle {
+.page-subtitle {
   font-size: 16px;
   color: #6B7280;
   margin: 0;
 }
 
-.nav-search {
+/* 搜索区域 */
+.search-section {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  justify-content: center;
+}
+
+.search-container {
+  position: relative;
   max-width: 400px;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: #9CA3AF;
+  pointer-events: none;
 }
 
 .search-input {
-  flex: 1;
-  padding: 12px 16px;
+  width: 100%;
+  padding: 12px 16px 12px 44px;
   border: 1px solid #E5E7EB;
   border-radius: 8px;
   font-size: 16px;
@@ -495,285 +608,57 @@ onMounted(() => {
 }
 
 .search-input:focus {
-  border-color: #000000;
+  border-color: #1F2937;
 }
 
 .search-input::placeholder {
   color: #9CA3AF;
 }
 
-.search-btn {
-  padding: 12px;
-  background: #000000;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.search-btn:hover {
-  background: #1F2937;
-}
-
-.search-icon {
-  width: 20px;
-  height: 20px;
-}
-
-/* 主要内容区域 */
-.main-content {
+/* 内容布局 */
+.content-layout {
   display: flex;
   gap: 32px;
-  padding: 32px;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.mcp-content {
-  flex: 1;
-}
-
-.loading-state {
-  text-align: center;
-  padding: 64px 24px;
-}
-
-.loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid #E5E7EB;
-  border-top: 3px solid #000000;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 16px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.mcp-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: 24px;
-}
-
-/* MCP工具卡片 */
-.mcp-card {
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  border-radius: 12px;
-  padding: 24px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.mcp-card:hover {
-  border-color: #000000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.mcp-header {
-  display: flex;
   align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 16px;
 }
 
-.mcp-icon {
-  width: 48px;
-  height: 48px;
-  background: #F9FAFB;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.mcp-icon .icon {
-  width: 24px;
-  height: 24px;
-  color: #374151;
-}
-
-.mcp-info {
-  flex: 1;
-}
-
-.mcp-name {
-  font-size: 18px;
-  font-weight: 600;
-  color: #000000;
-  margin: 0 0 4px 0;
-}
-
-.mcp-provider {
-  font-size: 14px;
-  color: #6B7280;
-  margin: 0;
-}
-
-.mcp-status {
-  flex-shrink: 0;
-}
-
-.status-badge {
-  padding: 4px 12px;
-  border-radius: 16px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.status-badge.available {
-  background: #F3F4F6;
-  color: #000000;
-}
-
-.status-badge.installed {
-  background: #D1FAE5;
-  color: #065F46;
-}
-
-.status-badge.installing {
-  background: #FEF3C7;
-  color: #92400E;
-}
-
-.mcp-content-body {
-  margin-bottom: 20px;
-}
-
-.mcp-description {
-  font-size: 14px;
-  color: #4B5563;
-  line-height: 1.5;
-  margin: 0 0 16px 0;
-}
-
-.mcp-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.tag {
-  padding: 4px 8px;
-  background: #F9FAFB;
-  color: #000000;
-  border: 1px solid #E5E7EB;
-  border-radius: 4px;
-  font-size: 12px;
-}
-
-.mcp-stats {
-  display: flex;
-  gap: 24px;
-}
-
-.stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.stat-label {
-  font-size: 12px;
-  color: #6B7280;
-  margin-bottom: 4px;
-}
-
-.stat-value {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1F2937;
-}
-
-.mcp-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.install-btn {
-  flex: 1;
-  padding: 10px 16px;
-  background: #000000;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.install-btn:hover:not(:disabled) {
-  background: #1F2937;
-}
-
-.install-btn:disabled {
-  background: #9CA3AF;
-  cursor: not-allowed;
-}
-
-.details-btn {
-  padding: 10px 16px;
-  background: white;
-  color: #374151;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.details-btn:hover {
-  border-color: #000000;
-  color: #000000;
-}
-
-/* 右侧边栏 */
+/* 侧边栏 */
 .sidebar {
-  width: 300px;
+  width: 280px;
   flex-shrink: 0;
 }
 
 .sidebar-header {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .sidebar-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
-  color: #000000;
+  color: #1F2937;
   margin: 0;
 }
 
-.category-tree {
+.category-list {
   background: #FFFFFF;
   border: 1px solid #E5E7EB;
   border-radius: 12px;
   overflow: hidden;
 }
 
-.category-node {
+.category-group {
   border-bottom: 1px solid #E5E7EB;
 }
 
-.category-node:last-child {
+.category-group:last-child {
   border-bottom: none;
 }
 
 .category-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 16px 20px;
+  justify-content: space-between;
+  padding: 12px 16px;
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -784,8 +669,14 @@ onMounted(() => {
 
 .category-item.active {
   background: #F3F4F6;
-  color: #000000;
+  color: #1F2937;
   font-weight: 500;
+}
+
+.category-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .expand-icon {
@@ -800,13 +691,18 @@ onMounted(() => {
 }
 
 .category-name {
-  flex: 1;
   font-size: 14px;
+  color: inherit;
 }
 
 .category-count {
   font-size: 12px;
-  color: #6B7280;
+  color: #9CA3AF;
+  background: #F9FAFB;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 20px;
+  text-align: center;
 }
 
 .category-children {
@@ -817,7 +713,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px 12px 44px;
+  padding: 8px 16px 8px 40px;
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -828,7 +724,7 @@ onMounted(() => {
 
 .category-child.active {
   background: #E5E7EB;
-  color: #000000;
+  color: #1F2937;
   font-weight: 500;
 }
 
@@ -838,14 +734,51 @@ onMounted(() => {
 
 .child-count {
   font-size: 11px;
+  color: #9CA3AF;
+  background: #FFFFFF;
+  padding: 2px 6px;
+  border-radius: 8px;
+  min-width: 16px;
+  text-align: center;
+}
+
+/* 主内容区域 */
+.main-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 加载状态 */
+.loading-state {
+  text-align: center;
+  padding: 64px 24px;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #E5E7EB;
+  border-top: 3px solid #1F2937;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
   color: #6B7280;
+  font-size: 16px;
+  margin: 0;
 }
 
 /* 空状态 */
 .empty-state {
   text-align: center;
   padding: 64px 24px;
-  grid-column: 1 / -1;
 }
 
 .empty-icon {
@@ -868,9 +801,212 @@ onMounted(() => {
   margin: 0;
 }
 
+/* 工具网格 */
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 24px;
+}
+
+/* 工具卡片 */
+.tool-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.tool-card:hover {
+  border-color: #1F2937;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tool-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.tool-icon {
+  width: 48px;
+  height: 48px;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tool-icon .icon {
+  width: 24px;
+  height: 24px;
+  color: #374151;
+}
+
+.tool-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tool-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+}
+
+.tool-provider {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0;
+}
+
+.tool-status {
+  flex-shrink: 0;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.available {
+  background: #F3F4F6;
+  color: #1F2937;
+}
+
+.status-badge.installed {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.status-badge.installing {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.tool-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.tool-description {
+  font-size: 14px;
+  color: #4B5563;
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tool-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  padding: 4px 8px;
+  background: #F9FAFB;
+  color: #1F2937;
+  border: 1px solid #E5E7EB;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tool-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: auto;
+}
+
+.stat {
+  text-align: center;
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #6B7280;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.stat-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.tool-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: auto;
+}
+
+/* 按钮样式 */
+.btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: #1F2937;
+  color: #FFFFFF;
+  flex: 1;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #374151;
+}
+
+.btn-primary:disabled {
+  background: #9CA3AF;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #FFFFFF;
+  color: #374151;
+  border: 1px solid #E5E7EB;
+}
+
+.btn-secondary:hover {
+  border-color: #1F2937;
+  color: #1F2937;
+}
+
 /* 响应式设计 */
-@media (max-width: 1200px) {
-  .main-content {
+@media (max-width: 1024px) {
+  .content-layout {
     flex-direction: column;
   }
   
@@ -878,38 +1014,96 @@ onMounted(() => {
     width: 100%;
   }
   
-  .category-tree {
+  .category-list {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     background: transparent;
     border: none;
+    padding: 0;
   }
   
-  .category-node {
+  .category-group {
     border: 1px solid #E5E7EB;
     border-radius: 8px;
     border-bottom: 1px solid #E5E7EB;
+    background: #FFFFFF;
+  }
+  
+  .category-children {
+    display: none;
   }
 }
 
 @media (max-width: 768px) {
-  .top-navigation {
-    flex-direction: column;
+  .main-container {
+    padding: 0 16px;
+  }
+  
+  .page-header {
+    padding: 24px 0;
+  }
+  
+  .page-title {
+    font-size: 24px;
+  }
+  
+  .content-layout {
+    gap: 24px;
+  }
+  
+  .tools-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .nav-container {
+    padding: 0 16px;
+  }
+  
+  .nav-left {
     gap: 16px;
-    align-items: stretch;
   }
   
-  .nav-search {
-    max-width: none;
+  .nav-link {
+    padding: 6px 12px;
+    font-size: 13px;
   }
   
-  .main-content {
+  .nav-icon {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tool-card {
     padding: 16px;
   }
   
-  .mcp-grid {
-    grid-template-columns: 1fr;
+  .tool-header {
+    gap: 12px;
+  }
+  
+  .tool-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .tool-icon .icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .tool-name {
+    font-size: 16px;
+  }
+  
+  .tool-actions {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
   }
 }
 </style>

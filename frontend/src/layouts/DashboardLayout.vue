@@ -262,11 +262,13 @@ const isAdmin = computed(() => {
 })
 
 const userName = computed(() => {
-  return authStore.user?.username || '用户'
+  if (!authStore.user) return '用户'
+  return authStore.user.nickname || authStore.user.username || authStore.user.email || '用户'
 })
 
 const userInitial = computed(() => {
-  return userName.value.charAt(0).toUpperCase()
+  const name = userName.value
+  return name.charAt(0).toUpperCase()
 })
 
 const userRole = computed(() => {

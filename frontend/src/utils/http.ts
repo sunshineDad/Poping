@@ -54,9 +54,10 @@ class HttpClient {
     // 请求拦截器
     this.instance.interceptors.request.use(
       (config) => {
-        const authStore = useAuthStore()
-        if (authStore.accessToken) {
-          config.headers.Authorization = `Bearer ${authStore.accessToken}`
+        // 直接从localStorage获取token，避免store初始化问题
+        const token = localStorage.getItem('access_token')
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`
         }
         return config
       },
@@ -225,8 +226,9 @@ class HttpClient {
    * - 逻辑: 1. 清除认证信息 2. 跳转到登录页
    */
   private handleUnauthorized(): void {
-    const authStore = useAuthStore()
-    authStore.logout()
+    // 直接清除localStorage中的token，避免store初始化问题
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
     
     this.showError('登录已过期，请重新登录')
     

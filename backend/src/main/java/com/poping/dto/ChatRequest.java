@@ -15,7 +15,7 @@ public class ChatRequest {
     @NotBlank(message = "消息内容不能为空")
     private String message;
     
-    private Long sessionId;
+    private String sessionId;
     
     private Map<String, Object> context;
     
@@ -36,11 +36,11 @@ public class ChatRequest {
         this.message = message;
     }
     
-    public Long getSessionId() {
+    public String getSessionId() {
         return sessionId;
     }
     
-    public void setSessionId(Long sessionId) {
+    public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
     }
     

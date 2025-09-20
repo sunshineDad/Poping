@@ -33,7 +33,7 @@ public class ChatController {
     @PostMapping("/send")
     public ResponseEntity<ApiResponse<Map<String, Object>>> sendMessage(
             @Valid @RequestBody ChatRequest request,
-            @RequestHeader("User-Id") Long userId) {
+            @RequestHeader("User-Id") String userId) {
         try {
             Map<String, Object> response = chatService.sendMessage(request, userId);
             return ResponseEntity.ok(ApiResponse.success(response));
@@ -63,7 +63,7 @@ public class ChatController {
      */
     @GetMapping("/sessions")
     public ResponseEntity<ApiResponse<IPage<Session>>> getUserSessions(
-            @RequestHeader("User-Id") Long userId,
+            @RequestHeader("User-Id") String userId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
@@ -126,7 +126,7 @@ public class ChatController {
      */
     @GetMapping("/sessions/active")
     public ResponseEntity<ApiResponse<List<Session>>> getActiveSessions(
-            @RequestHeader("User-Id") Long userId,
+            @RequestHeader("User-Id") String userId,
             @RequestParam(defaultValue = "5") int limit) {
         try {
             List<Session> sessions = chatService.getUserActiveSessions(userId, limit);

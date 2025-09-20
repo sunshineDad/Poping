@@ -36,7 +36,7 @@ public class User {
      * 密码哈希值，不返回给前端
      */
     @JsonIgnore
-    @TableField("password_hash")
+    @TableField("password")
     private String passwordHash;
     
     /**

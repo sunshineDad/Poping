@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, withDefaults, defineProps } from 'vue'
 
 // 图标组件定义
 const DashboardIcon = {

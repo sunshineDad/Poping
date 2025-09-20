@@ -88,7 +88,16 @@ public class UserService {
         }
         
         // 验证密码
-        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+        String storedPassword = user.getPasswordHash();
+        System.out.println("DEBUG: Stored password hash: " + storedPassword);
+        System.out.println("DEBUG: Stored password length: " + (storedPassword != null ? storedPassword.length() : "null"));
+        System.out.println("DEBUG: Input password: " + password);
+        
+        if (storedPassword == null || storedPassword.trim().isEmpty()) {
+            throw new RuntimeException("用户密码未设置");
+        }
+        
+        if (!passwordEncoder.matches(password, storedPassword)) {
             throw new RuntimeException("密码错误");
         }
         
@@ -96,6 +105,19 @@ public class UserService {
         return jwtUtil.generateToken(user.getUserId(), user.getEmail());
     }
     
+    /**
+     * [函数: generatePasswordHash]
+     * - 输入: String password - 明文密码
+     * - 输出: String - BCrypt哈希
+     * - 角色: 生成密码哈希用于调试
+     * - 逻辑: 1. 使用BCrypt编码器生成哈希 2. 返回哈希值
+     */
+    public String generatePasswordHash(String password) {
+        String hash = passwordEncoder.encode(password);
+        System.out.println("Generated hash for password '" + password + "': " + hash);
+        return hash;
+    }
+
     /**
      * [函数: getUserById]
      * - 输入: String userId - 用户业务ID

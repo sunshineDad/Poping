@@ -208,6 +208,7 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 // 类型定义
 interface LoginForm {
@@ -222,8 +223,9 @@ interface FormErrors {
   general?: string
 }
 
-// 路由
+// 路由和store
 const router = useRouter()
+const authStore = useAuthStore()
 
 // 响应式数据
 const form = reactive<LoginForm>({
@@ -276,26 +278,13 @@ const handleLogin = async () => {
   errors.general = ''
 
   try {
-    // 调用登录API
-    const response = await fetch('/api/v1/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: form.email,
-        password: form.password,
-      }),
+    // 使用auth store进行登录
+    const result = await authStore.login({
+      email: form.email,
+      password: form.password,
     })
 
-    const data = await response.json()
-
-    if (data.success) {
-      // 保存认证信息
-      localStorage.setItem('access_token', data.data.accessToken)
-      localStorage.setItem('refresh_token', data.data.refreshToken)
-      localStorage.setItem('user_info', JSON.stringify(data.data.user))
-      
+    if (result.success) {
       // 跳转到仪表板
       router.push('/overview')
     } else {
@@ -313,14 +302,14 @@ const handleLogin = async () => {
 const loginWithGoogle = () => {
   // 实现Google OAuth登录
   console.log('Google登录')
-  // window.location.href = '/api/v1/auth/google'
+  // window.location.href = '/api/auth/google'
 }
 
 // GitHub登录
 const loginWithGithub = () => {
   // 实现GitHub OAuth登录
   console.log('GitHub登录')
-  // window.location.href = '/api/v1/auth/github'
+  // window.location.href = '/api/auth/github'
 }
 </script>
 
@@ -330,21 +319,21 @@ const loginWithGithub = () => {
   max-width: 1200px;
 }
 
-/* 输入框焦点样式 */
+/* 输入框焦点样式 - 使用品牌色 */
 .input:focus {
   outline: none;
-  border-color: #000;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* 复选框样式 */
+/* 复选框样式 - 使用品牌色 */
 input[type="checkbox"]:checked {
-  background-color: #000;
-  border-color: #000;
+  background-color: #3B82F6;
+  border-color: #3B82F6;
 }
 
 input[type="checkbox"]:focus {
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 /* 响应式调整 */

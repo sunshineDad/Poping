@@ -79,32 +79,40 @@
           
           <div class="agent-info">
             <div class="agent-header">
-              <h4 class="agent-name">{{ agent.name }}</h4>
-              <div class="agent-status">
-                <span
-                  class="status-dot"
-                  :class="agent.status"
-                  :title="getStatusText(agent.status)"
-                ></span>
+              <div class="agent-title-section">
+                <h4 class="agent-name">{{ agent.name }}</h4>
+                <div class="agent-status">
+                  <span
+                    class="status-dot"
+                    :class="agent.status"
+                    :title="getStatusText(agent.status)"
+                  ></span>
+                </div>
+              </div>
+              
+              <!-- 横向排列的元数据 -->
+              <div class="agent-meta-inline">
+                <span class="agent-model">
+                  <svg class="meta-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                  </svg>
+                  {{ agent.config?.model || '未配置' }}
+                </span>
+                
+                <span class="meta-separator">•</span>
+                
+                <span class="agent-updated">
+                  <svg class="meta-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                  </svg>
+                  {{ formatTime(agent.updatedAt) }}
+                </span>
               </div>
             </div>
             
-            <p class="agent-description">{{ agent.description || '暂无描述' }}</p>
-            
-            <div class="agent-meta">
-              <span class="agent-model">
-                <svg class="meta-icon" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
-                </svg>
-                {{ agent.config?.model || '未配置' }}
-              </span>
-              
-              <span class="agent-updated">
-                <svg class="meta-icon" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-                </svg>
-                {{ formatTime(agent.updatedAt) }}
-              </span>
+            <!-- 描述文本单独一行，避免挤压 -->
+            <div class="agent-description-wrapper">
+              <p class="agent-description">{{ agent.description || '暂无描述' }}</p>
             </div>
           </div>
           
@@ -126,7 +134,7 @@
             >
               <svg class="action-icon" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.415L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
               </svg>
             </button>
           </div>
@@ -446,114 +454,124 @@ function formatTime(timestamp: string): string {
 .agent-items {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px; /* 增加卡片间距从8px到12px */
+  padding: 4px 0; /* 添加上下内边距，确保视觉平衡 */
 }
 
+/* 智能体卡片 */
 .agent-item {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 16px;
-  border: 1px solid #e5e7eb;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid #E5E7EB;
   border-radius: 12px;
-  background: #ffffff;
+  background: #FFFFFF;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-height: 120px;
 }
 
 .agent-item:hover {
-  border-color: #d1d5db;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-color: #3B82F6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  transform: translateY(-1px);
 }
 
 .agent-item.active {
-  border-color: #374151;
-  background: rgba(55, 65, 81, 0.05);
-  box-shadow: 0 0 0 3px rgba(55, 65, 81, 0.1);
+  border-color: #3B82F6;
+  background: #F8FAFF;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }
 
+/* 头像 */
 .agent-avatar {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-  border-radius: 10px;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  color: white;
 }
 
 .avatar-icon {
-  width: 20px;
-  height: 20px;
-  color: #ffffff;
+  width: 24px;
+  height: 24px;
 }
 
+/* 智能体信息区域 */
 .agent-info {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
+/* 头部区域 - 包含标题和元数据 */
 .agent-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 标题和状态横向排列 */
+.agent-title-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 4px;
+  gap: 12px;
 }
 
 .agent-name {
   font-size: 16px;
   font-weight: 600;
-  color: #1f2937;
+  color: #1F2937;
   margin: 0;
-  truncate: true;
+  line-height: 1.4;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+/* 状态指示器 */
 .agent-status {
-  display: flex;
-  align-items: center;
+  flex-shrink: 0;
 }
 
 .status-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #d1d5db;
+  display: inline-block;
 }
 
 .status-dot.active {
-  background: #4b5563;
+  background-color: #10B981;
 }
 
 .status-dot.inactive {
-  background: #6b7280;
+  background-color: #9CA3AF;
 }
 
 .status-dot.error {
-  background: #6b7280;
+  background-color: #EF4444;
 }
 
-.status-dot.training {
-  background: #9ca3af;
-}
-
-.agent-description {
-  font-size: 14px;
-  color: #6b7280;
-  margin: 0 0 8px 0;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.agent-meta {
+/* 横向排列的元数据 */
+.agent-meta-inline {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
   font-size: 12px;
-  color: #9ca3af;
+  color: #6B7280;
+  line-height: 1.4;
+  flex-wrap: wrap;
 }
 
 .agent-model,
@@ -561,51 +579,118 @@ function formatTime(timestamp: string): string {
   display: flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
 }
 
 .meta-icon {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
+.meta-separator {
+  color: #D1D5DB;
+  font-weight: 500;
+  user-select: none;
+}
+
+/* 描述文本区域 */
+.agent-description-wrapper {
+  flex: 1;
+}
+
+.agent-description {
+  font-size: 14px;
+  color: #6B7280;
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+/* 操作按钮 */
 .agent-actions {
+  flex-shrink: 0;
   display: flex;
-  gap: 4px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.agent-item:hover .agent-actions {
-  opacity: 1;
+  align-items: flex-start;
+  gap: 8px;
+  padding-top: 4px;
 }
 
 .action-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: none;
-  border-radius: 6px;
-  background: #f9fafb;
-  color: #6b7280;
   cursor: pointer;
+  color: #6B7280;
   transition: all 0.2s ease;
 }
 
 .action-btn:hover {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.action-btn.delete-btn:hover {
-  background: #f3f4f6;
+  background: #F3F4F6;
   color: #374151;
 }
 
 .action-icon {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .agent-item {
+    padding: 16px;
+    gap: 12px;
+    min-height: 100px;
+  }
+  
+  .agent-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .avatar-icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .agent-name {
+    font-size: 15px;
+  }
+  
+  .agent-meta-inline {
+    font-size: 11px;
+    gap: 6px;
+  }
+  
+  .meta-icon {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .agent-description {
+    font-size: 13px;
+    -webkit-line-clamp: 1;
+  }
+  
+  .action-btn {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .action-icon {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 .modal-overlay {
@@ -692,13 +777,38 @@ function formatTime(timestamp: string): string {
   }
   
   .agent-item {
-    padding: 12px;
+    padding: 16px;
+    gap: 14px;
+  }
+  
+  .agent-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .avatar-icon {
+    width: 20px;
+    height: 20px;
   }
   
   .agent-meta {
     flex-direction: column;
     align-items: flex-start;
+    gap: 6px;
+  }
+  
+  .agent-actions {
     gap: 4px;
+  }
+  
+  .action-btn {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .action-icon {
+    width: 14px;
+    height: 14px;
   }
   
   .modal-overlay {

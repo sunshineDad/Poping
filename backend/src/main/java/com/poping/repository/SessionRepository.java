@@ -21,36 +21,36 @@ public interface SessionRepository extends BaseMapper<Session> {
     /**
      * 根据用户ID分页查询会话
      */
-    @Select("SELECT * FROM sessions WHERE user_id = #{userId} ORDER BY last_activity DESC")
-    IPage<Session> selectByUserId(Page<Session> page, @Param("userId") Long userId);
+    @Select("SELECT * FROM chat_sessions WHERE user_id = #{userId} ORDER BY updated_at DESC")
+    IPage<Session> selectByUserId(Page<Session> page, @Param("userId") String userId);
     
     /**
      * 根据用户ID和智能体ID查询活跃会话
      */
-    @Select("SELECT * FROM sessions WHERE user_id = #{userId} AND agent_id = #{agentId} AND status = 'active' ORDER BY last_activity DESC LIMIT 1")
-    Session selectActiveSession(@Param("userId") Long userId, @Param("agentId") Long agentId);
+    @Select("SELECT * FROM chat_sessions WHERE user_id = #{userId} AND agent_config_id = #{agentId} AND status = 'active' ORDER BY updated_at DESC LIMIT 1")
+    Session selectActiveSession(@Param("userId") String userId, @Param("agentId") Long agentId);
     
     /**
      * 根据AIGents会话ID查询
      */
-    @Select("SELECT * FROM sessions WHERE aigents_session_id = #{aigentsSessionId}")
+    @Select("SELECT * FROM chat_sessions WHERE external_session_id = #{aigentsSessionId}")
     Session selectByAigentsSessionId(@Param("aigentsSessionId") String aigentsSessionId);
     
     /**
      * 更新最后活动时间
      */
-    @Update("UPDATE sessions SET last_activity = #{lastActivity} WHERE id = #{id}")
+    @Update("UPDATE chat_sessions SET updated_at = #{lastActivity} WHERE id = #{id}")
     int updateLastActivity(@Param("id") Long id, @Param("lastActivity") LocalDateTime lastActivity);
     
     /**
-     * 增加消息数量
+     * 增加消息数量 - 数据库中没有message_count字段，移除此方法
      */
-    @Update("UPDATE sessions SET message_count = message_count + 1 WHERE id = #{id}")
-    int incrementMessageCount(@Param("id") Long id);
+    // @Update("UPDATE chat_sessions SET message_count = message_count + 1 WHERE id = #{id}")
+    // int incrementMessageCount(@Param("id") Long id);
     
     /**
      * 获取用户的活跃会话列表
      */
-    @Select("SELECT * FROM sessions WHERE user_id = #{userId} AND status = 'active' ORDER BY last_activity DESC LIMIT #{limit}")
-    List<Session> selectActiveSessions(@Param("userId") Long userId, @Param("limit") int limit);
+    @Select("SELECT * FROM chat_sessions WHERE user_id = #{userId} AND status = 'active' ORDER BY updated_at DESC LIMIT #{limit}")
+    List<Session> selectActiveSessions(@Param("userId") String userId, @Param("limit") int limit);
 }

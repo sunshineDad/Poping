@@ -113,6 +113,7 @@ public class SecurityConfig {
             // 配置请求授权规则
             .authorizeHttpRequests()
                 // 公开端点 - 不需要认证
+                .antMatchers("/api/auth/**").permitAll()
                 .antMatchers("/api/v1/auth/**").permitAll()
                 .antMatchers("/api/v1/portal/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/v1/portal/**").permitAll()

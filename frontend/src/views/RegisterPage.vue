@@ -464,7 +464,7 @@ const handleRegister = async () => {
 
   try {
     // 调用注册API
-    const response = await fetch('/api/v1/auth/register', {
+    const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -500,14 +500,14 @@ const handleRegister = async () => {
 const registerWithGoogle = () => {
   // 实现Google OAuth注册
   console.log('Google注册')
-  // window.location.href = '/api/v1/auth/google'
+  // window.location.href = '/api/auth/google'
 }
 
 // GitHub注册
 const registerWithGithub = () => {
   // 实现GitHub OAuth注册
   console.log('GitHub注册')
-  // window.location.href = '/api/v1/auth/github'
+  // window.location.href = '/api/auth/github'
 }
 </script>
 
@@ -517,21 +517,21 @@ const registerWithGithub = () => {
   max-width: 1200px;
 }
 
-/* 输入框焦点样式 */
+/* 输入框焦点样式 - 使用品牌色 */
 .input:focus {
   outline: none;
-  border-color: #000;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* 复选框样式 */
+/* 复选框样式 - 使用品牌色 */
 input[type="checkbox"]:checked {
-  background-color: #000;
-  border-color: #000;
+  background-color: #3B82F6;
+  border-color: #3B82F6;
 }
 
 input[type="checkbox"]:focus {
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 /* 密码强度指示器动画 */

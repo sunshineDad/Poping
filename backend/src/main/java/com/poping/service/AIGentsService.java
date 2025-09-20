@@ -139,7 +139,6 @@ public class AIGentsService {
             
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("query", query);
-            requestBody.put("stream", false); // 同步响应
             
             if (context != null && !context.isEmpty()) {
                 requestBody.put("context", context);
@@ -153,10 +152,9 @@ public class AIGentsService {
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
             
             if (response.getStatusCode() == HttpStatus.OK) {
-                JsonNode jsonNode = objectMapper.readTree(response.getBody());
-                if (jsonNode.get("success").asBoolean()) {
-                    return jsonNode.get("data").get("content").asText();
-                }
+                // AI服务返回的是Server-Sent Events格式，需要解析
+                String responseBody = response.getBody();
+                return parseSSEResponse(responseBody);
             }
             
             logger.error("Failed to send AIGents query: {}", response.getBody());
@@ -165,6 +163,47 @@ public class AIGentsService {
         } catch (Exception e) {
             logger.error("Error sending AIGents query", e);
             return "抱歉，AI服务出现错误，请稍后再试。";
+        }
+    }
+    
+    /**
+     * 解析Server-Sent Events响应
+     * @param sseResponse SSE格式的响应
+     * @return 提取的AI响应内容
+     */
+    private String parseSSEResponse(String sseResponse) {
+        try {
+            StringBuilder result = new StringBuilder();
+            String[] lines = sseResponse.split("\n");
+            
+            for (String line : lines) {
+                if (line.startsWith("data: ")) {
+                    String jsonData = line.substring(6); // 移除"data: "前缀
+                    if (!jsonData.trim().isEmpty()) {
+                        JsonNode eventNode = objectMapper.readTree(jsonData);
+                        String type = eventNode.get("type").asText();
+                        
+                        if ("message".equals(type)) {
+                            JsonNode dataNode = eventNode.get("data");
+                            if (dataNode != null && dataNode.has("content")) {
+                                result.append(dataNode.get("content").asText());
+                            }
+                        } else if ("result".equals(type)) {
+                            JsonNode dataNode = eventNode.get("data");
+                            if (dataNode != null && dataNode.has("result")) {
+                                // 如果有最终结果，使用最终结果
+                                return dataNode.get("result").asText();
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return result.length() > 0 ? result.toString() : "抱歉，未能获取到AI响应。";
+            
+        } catch (Exception e) {
+            logger.error("Error parsing SSE response", e);
+            return "抱歉，解析AI响应时出现错误。";
         }
     }
     
